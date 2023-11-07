@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
     int  ret, found, nread, i, fd;
     char read_char;
 
-    // CHECK ARGS
+    // CHECK ARGS "eseguibile filtro file"
     if (argc < 2 || argc > 3) {
         printf("Error:%s prefix < filename \n OR \n %s prefix filename\n", argv[0], argv[0]);
         return EXIT_FAILURE;
