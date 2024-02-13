@@ -1,3 +1,6 @@
+// RPC_xFile
+
+
 const DATI = 10;
 const MAX_STRING =128;
 
@@ -17,8 +20,8 @@ struct Biglietti{
 	int nBiglietti;
 };
 
-program OPERATION {
-	version OPERATIONVERS {  
+program FILEPROG {
+	version FILEVERS {  
 		int INSERIMENTO_EVENTO(Evento) = 1;
         int ACQUISTA_BIGLIETTI(Biglietti)=2;
 	} = 1;
