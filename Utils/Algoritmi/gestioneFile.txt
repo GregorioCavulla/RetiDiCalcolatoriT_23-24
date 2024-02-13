@@ -1,0 +1,79 @@
+//TRASFERIMENTO DEI FILE DI UNA CARTELLA
+//trasferisce tutti i file contenuti in una cartella
+
+//Parte di ricezione
+
+String nomeFile;
+int  i, lettura;
+FileOutputStream outFileCorr;
+File file;
+long dimensione;
+
+while ((nomeFile = inSock.readUTF()) != null){
+					
+	file = new File(nomeFile);
+	outFileCorr = new FileOutputStream(file);
+	dimensione = inSock.readLong();
+					
+	System.out.println("Creo file "+nomeFile+" di dimensione "+ dimensione);
+
+	for(i=0; i<dimensione; i++){
+		lettura = inSock.read();
+		if(lettura <0) break;
+			outFileCorr.write(lettura);
+		}
+
+		if(i != (dimensione)) System.out.println("Errore nel trasferimento del file " + nomeFile);
+
+		outFileCorr.close();
+
+	}
+
+
+//Parte di invio
+
+
+//Variabili per l'eseczione
+File cartella, fileCor;
+File[] files;
+int i,j, lettura;
+long lunghezza;
+FileInputStream inFileCorr;
+//Fine variabili per l'esecuzione
+
+System.out.println("Cartella da trasferire: ");
+
+while ((nomeDir = stdIn.readLine()) != null){  //Lettura da console, si può sostituire
+                
+	cartella = new File(nomeDir);
+
+	if(cartella.exists() && cartella.isDirectory()){
+
+	files = cartella.listFiles();
+
+	for(i=0; i<files.length; i++){
+
+		fileCor = files[i];
+		lunghezza = fileCor.length();
+		inFileCorr = new FileInputStream(fileCor);
+
+		outSock.writeUTF(fileCor.getName());
+		outSock.writeLong(lunghezza);
+		System.out.println("Trasferisco file "+fileCor.getName()+" di lunghezza "+ lunghezza);
+
+		for(j=0; j<lunghezza; j++){
+			lettura = inFileCorr.read();
+			if(lettura < 0 ) break;
+			outSock.write(lettura);
+		}
+
+		if(j!= (lunghezza)) System.out.println("Errore nel trasferimento del file " + fileCor.getName());
+			inFileCorr.close();
+		}
+
+	}
+
+System.out.println("Cartella da trasferire: ");
+}
+
+

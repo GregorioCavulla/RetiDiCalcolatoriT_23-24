@@ -1,0 +1,272 @@
+//CERCA N-ESIMA RIGA
+//Cerca la riga n-esima del file con nome nomeFile
+
+//Variabili per l'esecuzione
+String linea = null;
+BufferedReader in = null;
+//Fine variabili
+
+
+if( numLinea <= 0 ) return linea = "Linea non trovata: numero linea maggiore 
+                    di 0.";
+	
+    
+try {
+	in = new BufferedReader(new FileReader(nomeFile));
+	System.out.println("File aperto: " + nomeFile);
+} catch (FileNotFoundException e) {
+	System.out.println("File non trovato: ");
+	e.printStackTrace();
+	return linea = "File non trovato";
+}
+
+try {
+	for (int i = 1; i <= numLinea; i++) {
+		linea = in.readLine();
+		if (linea == null) {
+			linea = "Linea non trovata";
+			in.close();
+			return linea;
+		}
+	}
+} catch (IOException e) {
+	System.out.println("Linea non trovata: ");
+	e.printStackTrace();
+	return linea = "Linea non trovata";
+}
+
+System.out.println("Linea selezionata: " + linea);
+	
+try {
+	in.close();
+}
+catch (IOException e) {
+	System.out.println("Errore nella chiusura del reader");
+	e.printStackTrace();
+}
+return linea;
+
+//------------------------------------------------------------------------------
+//ROWSWAPPER
+//Esegue lo swapp di due righe di un file, righe indicate con int, avvalendosi di
+//un file temporaneo, nasce per essere in un thread, ma può essere adattato 
+
+//Variabili per l'esecuzione
+String row1 = "", row2 = ""; //Qui inseriamo le due righe da swappare
+String file_temp = Thread.currentThread().getId()+".txt"; //Nome del file temporaneo usato dal thread
+FileWriter fout = null;
+File temp = null;
+BufferedReader in= null;
+int max , trovate;
+String row;
+//Fine variabili
+
+if ( n1<=0 || n2<=0 ){  //Controllo delle righe
+	risposta = "0";
+	trovate=0;
+}else{
+
+
+//Estraggo le due righe da swappare e le metto in row1 e row2
+in = new BufferedReader(new FileReader(this.file));
+
+//Capisco fino a dove devo leggere il file
+if( n1< n2){
+	max = n2;
+}else{
+	max = n1;
+}
+
+
+for (int i = 1; i <= max; i++) {
+	row= in.readLine();
+
+	if(i==n1) row1=row;
+	if(i==n2) row2=row;
+
+	if (row == null) {
+		risposta = "0";
+		trovate=0;
+		in.close();
+	}
+
+}
+in.close();
+
+//Se sono riuscito ad estrarre le due righe procedo con lo swap, scrivo prima su temp il file swappato
+//poi sovrascrivo il file originale
+
+if( trovate == 1){
+
+
+	try{    
+
+	    temp=new File(file_temp);
+		fout = new FileWriter(file_temp);
+		in = new BufferedReader(new FileReader(this.file));
+
+		row = in.readLine();
+
+		while ( row != null) {
+
+			if(row.compareTo(row1)!=0 && row.compareTo(row2)!=0){
+				fout.write(row+"\n", 0, row.length()+1);
+			}else if (row.compareTo(row1)==0){
+				fout.write(row2+"\n", 0, row2.length()+1);
+			}else if (row.compareTo(row2)==0){
+				fout.write(row1+"\n", 0, row1.length()+1);
+			}
+
+		    row = in.readLine();
+		}
+
+		in.close();
+		fout.close();
+
+		in = new BufferedReader(new FileReader(file_temp));
+		fout = new FileWriter(this.file, false);
+
+		row = in.readLine();
+
+		while( row!=null ){
+			fout.write(row+"\n", 0, row.length()+1);
+			row = in.readLine();
+		}
+
+
+	    in.close();
+	    fout.close();
+		temp.delete();
+	    risposta = "1";
+		System.out.println("("+ Thread.currentThread().getId()+ ")Swap eseguito correttamente");
+					
+
+    }catch (IOException e){
+	    risposta = "0";
+	    in.close();
+	    fout.close();
+	    temp.delete();
+    }
+}
+}
+
+//------------------------------------------------------------------------------
+//CONTA RIGHE CON PAROLA
+//Restituisce il numero di righe che contengono la parola, in un file nomeFile, 
+//in caso di errore da -1;
+
+int result = 0;
+BufferedReader in;
+File file;
+String riga;
+
+file = new File(nomeFile);
+
+if(!file.exists() || !file.isFile()) return -1;
+
+try{
+    in = new BufferedReader(new FileReader(file));
+} catch (FileNotFoundException e) {
+	System.out.println("File non trovato: ");
+    e.printStackTrace();
+    return -1;
+}
+
+try{
+	while((riga = in.readLine()) != null){
+    	if(riga.contains(parola)){
+            result ++;
+        }
+    }
+    in.close();
+}catch(IOException e){
+    System.out.println("Errore lettura file: ");
+    e.printStackTrace();
+    return -1;
+}
+
+return result;
+
+
+//------------------------------------------------------------------------------
+//NOME FILE CHE CONTENGONO UNA PAROLA
+//Restituisce un array con i nomi dei file che contengono la parola, cerca 
+//nei file contenuti in una cartella
+
+String[] result;
+int i, count=0;
+File cartella, fileCor;
+File[] files;
+BufferedReader in = null;
+String riga;
+
+cartella = new File(nomeDir);
+
+if(!cartella.exists() || !cartella.isDirectory()) return null;
+        
+files = cartella.listFiles();
+
+	for(i=0; i<files.length; i++){
+        
+        fileCor = files[i];
+        try{
+            in = new BufferedReader(new FileReader(fileCor));
+        } catch (FileNotFoundException e) {
+        	System.out.println("File non trovato: ");
+        	e.printStackTrace();
+        	return null;
+        }
+
+        try{
+            while((riga = in.readLine()) != null){
+                if(riga.contains(parola)){
+                    count ++;
+                    break;
+                }
+            }
+
+            in.close();
+        }catch(IOException e){
+            System.out.println("Errore lettura file: ");
+            e.printStackTrace();
+            return null;
+        }
+        
+    }
+
+    result = new String[count];
+    count = 0;
+
+    for(i=0; i<files.length; i++){
+        
+        fileCor = files[i];
+            
+        try{
+            in = new BufferedReader(new FileReader(fileCor));
+        } catch (FileNotFoundException e) {
+            System.out.println("File non trovato: ");
+            e.printStackTrace();
+            return null;
+        }
+
+        try{
+            while((riga = in.readLine()) != null){
+                if(riga.contains(parola)){
+                    result[count] = fileCor.getName();
+                    count ++;
+                    break;
+                }
+            }
+            in.close();
+        }catch(IOException e){
+            System.out.println("Errore lettura file: ");
+            e.printStackTrace();
+            return null;
+        }
+
+    }
+
+    return (result);
+
+
+//------------------------------------------------------------------------------

@@ -1,0 +1,42 @@
+Alcune considerazioni pratiche:
+• Separazione tra
+– Definizione del comportamento → interfacce
+– Implementazione del comportamento → classe
+• I componenti remoti sono riferiti tramite variabili interfaccia (che
+possono contenere solo istanze di classi che implementano la
+interfaccia)
+• Alcuni vincoli sui componenti
+1. Definizione del comportamento, interfaccia
+• interfaccia deve estendere java.rmi.Remote
+• ogni metodo deve propagare java.rmi.RemoteException
+2. Implementazione del comportamento, classe server che
+• deve implementare l’interfaccia definita
+• deve estendere java.rmi.UnicastRemoteObject
+
+È necessario fare una serie di passi:
+1. Definire interfaccia e implementazione del componente server
+utilizzabile in remoto (quindi interfaccia e server, non il cliente)
+2. Compilare la interfaccia e la classe dette sopra (con javac), poi
+generare stub e skeleton (con rmic) della classe utilizzabile in remoto
+3. Pubblicare il servizio nel sistema di nomi, registry o RMIregistry
+– attivare il registry
+– registrare il servizio (il server deve fare una bind sul registry)
+4. Ottenere (lato cliente) il riferimento all’oggetto remoto tramite il name
+service, facendo una lookup sul registry, e compilare il cliente
+A questo punto l’interazione tra il cliente e il server può procedere
+(prima si deve attivare il servitore poi il cliente)
+
+Lato server
+1. Compilazione interfaccia e implementazione parte server
+javac EchoInterface.java
+javac EchoRMIServer.java
+2. Generazione eseguibili Stub e Skeleton
+rmic -vcompat EchoRMIServer
+Nota: in Java 1.5 e seguenti invocare rmic con opzione –vcompat
+per la produzione dei proxy
+3. Esecuzione lato server (registry e server)
+• Avviamento del registry: rmiregistry
+• Avviamento del server: java EchoRMIServer
+Lato client
+1. Compilazione: javac EchoRMIClient.java
+2. Esecuzione: java EchoRMIClient

@@ -1,0 +1,27 @@
+//DIMENSIONE FILE
+//Cicla sui file di una directory e stampa i file con dimensione maggiore di n
+
+char nameDir[30];
+DIR  *d;
+struct dirent *dir;
+struct stat fileStat;
+
+d = opendir(nameDir);
+
+    if(d) {
+        while((dir= readdir(d)) != NULL){
+            if(dir->d_type!= DT_DIR){
+                if(stat(dir->d_name, &fileStat)==0){
+                    if(fileStat.st_size > n){
+                        
+                        printf("%s",dir->d_name);
+
+                    }
+                }
+            }
+        }
+    }
+
+
+
+//-------------------------------------------------------------------------------------

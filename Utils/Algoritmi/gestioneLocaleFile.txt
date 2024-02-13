@@ -1,0 +1,35 @@
+Esempi di codice utile in java 
+
+------------------------------------------------------------------------------
+
+ELIMINAZIONE DI UN FILE 
+
+File file = new File("nomeFile.txt");
+file.delete();
+
+otteniamo l'eliminazione del file nomeFile, il prof ha usato questa invocazione
+tutta assieme, quindi non ha dichiarato l'oggetto File prima, ha fatto tutto 
+assieme
+
+------------------------------------------------------------------------------
+
+RINOMINARE UN FILE
+
+File file1 = new File("file1.txt");
+File file2 = new File("File2.txt");
+file2.renameTo(file1);
+file2.delete();
+
+facendo cosi abbiamo file2 che diventa file1, andiamo poi ad eliminare file2,
+cosi da ottenere solo file1 con il contenuto  di File2
+
+------------------------------------------------------------------------------
+
+CONTROLLARE L'ESISTENZA DI UN FILE
+
+File file = new File("File.txt");
+if(file.exists()) System.out.println("Gabibbo");
+
+se il file esiste si stampa "Gabibbo"
+
+------------------------------------------------------------------------------

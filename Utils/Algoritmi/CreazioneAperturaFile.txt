@@ -1,0 +1,34 @@
+
+GESTIONE FILE 
+
+----------------------------------------------
+
+Possibile modo per sovrascrivere a bianco un file
+
+fd = open("file.txt", O_WRONLY | O_TRUNC);
+
+ottieni un file bianco, in questo caso selezionato lettura,
+fd(int) contiene il file descriptor.
+
+
+-----------------------------------------------
+
+Possibili FLAG per OPEN
+
+O_WRONLY = apertura file in sola lettura 
+
+O_RDONLY = apertura file in sola scrittura
+
+O_RDWR = apertura file in lettura e scrittura 
+
+O_CREAT = crea il file 
+
+O_TRUNC = apre il file, ma ne elimina il contenuto
+
+
+possibile invocazione open: 
+
+d_temp = open(file_temp, O_RDWR | O_CREAT | O_TRUNC, 00640);
+
+usa | per concatenare piu opzioni.
+

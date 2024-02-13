@@ -1,0 +1,127 @@
+//INVIO TUTTI I FILE CONTENUTI IN UNA CARTELLA
+//Se la cartella non esiste non invia niente, trasferiento file, quindi socket stream
+
+//Parte di INVIO 
+
+
+struct RichiestaFile{
+    char targa[8];
+};
+
+//Variabili per l'esecuzione
+int i, fd_file, nwrite;
+struct RichiestaFile reqf;
+char cartella[255], buff[1024], zero=0, nome_file[255];
+DIR           *dir;
+struct dirent *dd;
+//fine variabili
+
+if ((read(conn_sd, &reqf, sizeof(reqf))) <= 0) {
+	perror("read");
+        break;
+}
+
+printf("Richiesta targa %s\n", reqf.targa);
+                    
+strcpy(cartella, "");
+
+for(i=0; i<10; i++){
+	if(strcmp(reqf.targa, dati[i].targa)==0){
+		strcpy(cartella, dati[i].cartella);
+		break;
+	}
+}
+
+if(strlen(cartella) == 0){
+	printf("Cartella non trovata\n");
+	write(conn_sd, &zero, 1);
+	continue;
+}
+
+dir = opendir(cartella);
+
+while ((dd = readdir(dir)) != NULL) {
+                        
+	if(dd->d_type == DT_DIR) continue;
+	strcpy(nome_file, "./");
+	strcat(nome_file, cartella);
+	strcat(nome_file, dd->d_name);
+	printf("Inizio trasferimento %s\n", nome_file);
+
+    fd_file = open(nome_file, O_RDONLY);
+	if (fd_file < 0) continue;
+
+	strcpy(nome_file, dd->d_name);
+	write(conn_sd, nome_file, sizeof(nome_file));
+	while ((nread = read(fd_file, buff, sizeof(buff))) > 0) {
+		if ((nwrite = write(conn_sd, buff, nread)) < 0) {
+			perror("write");
+                        break;
+                }
+        }
+
+	/* invio al client segnale di terminazione: zero binario */
+	printf("Finito file\n");
+	write(conn_sd, &zero, 1);
+        close(fd_file);
+
+}
+
+closedir(dir);
+printf("Finita caratella\n");
+write(conn_sd, &zero, 1);
+
+
+//-------------------------------------------------------------------------------------
+//Parte di RICEZZIONE
+
+struct RichiestaFile{
+    char targa[8];
+};
+
+
+//Variabili per l'esecuzione
+struct RichiestaFile req;
+char nome_file[255], c;
+int file_fd;
+//Fine variabili
+
+
+printf("Targa:");
+    //Inizio comportamento ciclico del Client
+    while(gets(req.targa)){
+
+        if (write(sd, &req, (sizeof(req))) < 0) {
+            perror("write");
+            break;
+        }
+
+        printf("Richiesta della targa %s inviata... \n", req.targa);
+
+        for(;;){
+            
+            read(sd, nome_file, sizeof(nome_file));
+            if(strlen(nome_file) == 0) break;
+            printf("Letto nome file: %s\n",nome_file);
+
+            file_fd = open(nome_file, O_CREAT | O_WRONLY, 0777);
+
+            while ((nread = read(sd, &c, 1)) > 0) // leggo a caratteri per individuare il fine file
+                if (c != '\0') {
+                    write(file_fd, &c, 1);
+                } else
+                    break;
+            if (nread < 0) {
+                perror("read");
+                break;
+            }
+            close(file_fd);
+
+        }
+        printf("Targa:");
+
+    }
+
+
+//-------------------------------------------------------------------------------------
+

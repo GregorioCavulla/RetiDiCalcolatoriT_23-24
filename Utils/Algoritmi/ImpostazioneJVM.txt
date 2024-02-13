@@ -1,0 +1,7 @@
+Per impostare Java 11 come defaut: 
+
+ 1) vim ~/.bashrc (aprire/creare il file con un editor es. vim)
+
+ 2) export PATH=/usr/lib/jvm/openjdk-11/bin:$PATH (inserire la linea di import)
+
+ 3) Salvare e controllare che la versione di java sia giusta con il comando java --version
