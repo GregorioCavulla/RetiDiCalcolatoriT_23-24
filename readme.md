@@ -6,8 +6,8 @@ Benvenuto nella mia repository dedicata allo studio del corso di Reti di Calcola
 
 - **/Laboratori**: Contiene gli esercizi di laboratorio suddivisi per lezione.
 
-- **/Prove_Esame**: Raccolta di prove d'esame passate o esempi di esercizi che potrebbero comparire in futuri esami.
+- **/Prove_Esame**: Raccolta di prove d'esame passate o esempi di esercizi che potrebbero comparire in futuri esami, suddivise in tipologie di esercizio, con soluzioni.
 
-- **/Utils**: Contiene documenti, guide e link utili per approfondire gli argomenti trattati nel corso.
+- **/Utils**: Contiene tre cartelle ./Algoritmi, ./Documentazione, ./Templates, e lo script addJava.sh per settare il jdk 11 utile per lo svolgimento degli esercizi di Java RMI.
 
 Buono studio e in bocca al lupo con il corso di Reti di Calcolatori T!
