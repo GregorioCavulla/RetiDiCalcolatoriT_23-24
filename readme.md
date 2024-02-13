@@ -4,10 +4,10 @@ Benvenuto nella mia repository dedicata allo studio del corso di Reti di Calcola
 
 ## Struttura della Repository
 
-- **/Esercizi_Laboratorio**: Contiene gli esercizi di laboratorio suddivisi per argomento.
+- **/Laboratori**: Contiene gli esercizi di laboratorio suddivisi per lezione.
 
 - **/Prove_Esame**: Raccolta di prove d'esame passate o esempi di esercizi che potrebbero comparire in futuri esami.
 
-- **/Risorse**: Contiene documenti, guide e link utili per approfondire gli argomenti trattati nel corso.
+- **/Utils**: Contiene documenti, guide e link utili per approfondire gli argomenti trattati nel corso.
 
 Buono studio e in bocca al lupo con il corso di Reti di Calcolatori T!
