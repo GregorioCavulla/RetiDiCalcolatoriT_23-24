@@ -1,5 +1,5 @@
-// RPC_xFile
-
+/* RPC_xFile
+*/
 
 const DATI = 10;
 const MAX_STRING =128;
