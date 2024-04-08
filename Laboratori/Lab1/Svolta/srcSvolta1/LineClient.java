@@ -7,18 +7,18 @@ public class LineClient {
 
 	public static void main(String[] args) {
 
-		InetAddress addr = null;
-		int port = -1;
+		InetAddress addr = null; // indirizzo del server
+		int port = -1; // porta del server
 		
 		try {
 			if (args.length == 2) {
-		    addr = InetAddress.getByName(args[0]);
-		    port = Integer.parseInt(args[1]);
+		    addr = InetAddress.getByName(args[0]); // indirizzo del server preso da riga di comando
+		    port = Integer.parseInt(args[1]); // porta del server presa da riga di comando
 			} else {
 				System.out.println("Usage: java LineClient serverIP serverPort");
 			    System.exit(1);
 			}
-		} catch (UnknownHostException e) {
+		} catch (UnknownHostException e) { // indirizzo non valido
 			System.out
 		      .println("Problemi nella determinazione dell'endpoint del server : ");
 			e.printStackTrace();
@@ -26,17 +26,17 @@ public class LineClient {
 			System.exit(2);
 		}
 	
-		DatagramSocket socket = null;
-		DatagramPacket packet = null;
-		byte[] buf = new byte[256];
+		DatagramSocket socket = null; // socket datagram per la comunicazione
+		DatagramPacket packet = null; // pacchetto datagram per la comunicazione
+		byte[] buf = new byte[256]; // buffer per la comunicazione
 
 		// creazione della socket datagram, settaggio timeout di 30s
 		// e creazione datagram packet
 		try {
 			socket = new DatagramSocket();
-			socket.setSoTimeout(30000);
-			packet = new DatagramPacket(buf, buf.length, addr, port);
-			System.out.println("\nLineClient: avviato");
+			socket.setSoTimeout(30000); // 30 secondi
+			packet = new DatagramPacket(buf, buf.length, addr, port); // pacchetto vuoto
+			System.out.println("\nLineClient: avviato"); 
 			System.out.println("Creata la socket: " + socket);
 		} catch (SocketException e) {
 			System.out.println("Problemi nella creazione della socket: ");
