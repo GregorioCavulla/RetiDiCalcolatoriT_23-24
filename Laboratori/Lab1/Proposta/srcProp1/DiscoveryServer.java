@@ -19,8 +19,8 @@ public class DiscoveryServer {
 		/* Controllo argomenti */
 		// Se non ho un numero pari di argomenti, oppure non viene registrato nessun
 		// server posso uscire
-		if ( (args.length-1) % 2 != 0 || args.length == 0) {
-			System.out.println("Usage: java DiscoveryServer portaDiscoveryServer file1 port1 ... fileN portN"); 
+		if ((args.length - 1) % 2 != 0 || args.length == 0) {
+			System.out.println("Usage: java DiscoveryServer <portaDiscoveryServer> <file1 port1> ... <fileN portN>");
 			System.exit(1);
 		}
 		PORT = Integer.parseInt(args[0]);
@@ -38,34 +38,36 @@ public class DiscoveryServer {
 		// e il secondo una porta valida
 		for (int i = 1; i < args.length; i = i + 2) {
 			if (!((fileCorr = new File(args[i])).exists())) {
-				System.out.println("One of the file passed as args, does not exist, the following:\n"+ args[i]);
+				System.out.println("One of the file passed as args, does not exist, the following:\n" + args[i]);
 				continue;
 			}
 			try {
-				portCorr = Integer.parseInt(args[i+1]);
+				portCorr = Integer.parseInt(args[i + 1]);
 				if (portCorr <= 1024 || portCorr > 65535) {
 					System.out.println("The following port is not valid: " + args[i]);
 					continue;
-				} else { 
-					// TODO: controllare (ciclo) che le porte successive siano diverse da quella corrente
+				} else {
+					// TODO: controllare (ciclo) che le porte successive siano diverse da quella
+					// corrente
 					// se arrivo qui: (a) il file esiste (b) la porta e' corretta
-					System.out.println("Aggiunto il seguente SwapServer - File: " + fileCorr + ",\t porta: " + portCorr);
-					validArgs+=2;
+					System.out
+							.println("Aggiunto il seguente SwapServer - File: " + fileCorr + ",\t porta: " + portCorr);
+					validArgs += 2;
 				}
 			} catch (NumberFormatException e) {
-				System.out.println("The following port is not a valid integer: "+ args[i]);
+				System.out.println("The following port is not a valid integer: " + args[i]);
 				continue;
 			}
 		} // for
 
 		/* Inizializzazione e attivazione dei SwapServer */
 		SwapServer currentSwapServer;
-		for (int i = 1; i <= validArgs; i+=2) {
-			currentSwapServer = new SwapServer(new File(args[i]), Integer.parseInt(args[i+1]));
+		for (int i = 1; i <= validArgs; i += 2) {
+			currentSwapServer = new SwapServer(new File(args[i]), Integer.parseInt(args[i + 1]));
 			currentSwapServer.start();
 		}
 
-		//Inizializzazione e apertura Socket
+		// Inizializzazione e apertura Socket
 		DatagramSocket socket = null;
 		DatagramPacket packet = null;
 		byte[] buf = new byte[256];
@@ -73,7 +75,7 @@ public class DiscoveryServer {
 		try {
 			socket = new DatagramSocket(PORT);
 			packet = new DatagramPacket(buf, buf.length);
-			System.out.println("DiscoveryServer avviato con socket port: " + socket.getLocalPort()); 
+			System.out.println("DiscoveryServer avviato con socket port: " + socket.getLocalPort());
 		} catch (SocketException e) {
 			System.out.println("Problemi nella creazione della socket: ");
 			e.printStackTrace();
@@ -97,7 +99,7 @@ public class DiscoveryServer {
 					packet.setData(buf);
 					socket.receive(packet);
 				} catch (IOException e) {
-					System.err.println("Problemi nella ricezione del datagramma: "+ e.getMessage());
+					System.err.println("Problemi nella ricezione del datagramma: " + e.getMessage());
 					e.printStackTrace();
 					continue;
 					// il server continua a fornire il servizio ricominciando dall'inizio
@@ -119,15 +121,16 @@ public class DiscoveryServer {
 
 				/* Generazione della risposta */
 				risposta = null;
-				for (int i = 1; i <= validArgs; i+=2) {
+				for (int i = 1; i <= validArgs; i += 2) {
 					if (args[i].equals(richiesta)) {
-						risposta = "" + args[i+1];
+						risposta = "" + args[i + 1];
 						break;
 					}
 				}
 
 				// problemi lato server, i.e. non abbiamo trovato il file
-				if (risposta == null) risposta = "File con nome: " + richiesta + " non trovato";
+				if (risposta == null)
+					risposta = "File con nome: " + richiesta + " non trovato";
 
 				System.out.println("Risposta: " + risposta);
 
@@ -140,7 +143,7 @@ public class DiscoveryServer {
 					packet.setData(data, 0, data.length);
 					socket.send(packet);
 				} catch (IOException e) {
-					System.err.println("Problemi nell'invio della risposta: "+ e.getMessage());
+					System.err.println("Problemi nell'invio della risposta: " + e.getMessage());
 					e.printStackTrace();
 					continue;
 					// il server continua a fornire il servizio ricominciando dall'inizio
