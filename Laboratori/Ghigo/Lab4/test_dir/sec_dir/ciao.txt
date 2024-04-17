@@ -1,0 +1,3 @@
+
+ciao client!
+sono un file dentro sec_dir
