@@ -1,0 +1,1 @@
+Esempio: gcc -I /usr/include/tirpc echo_client.c echo_clnt.c file_xdr.c -o echo_client -ltirpc

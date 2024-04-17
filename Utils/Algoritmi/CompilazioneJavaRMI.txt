@@ -1,0 +1,13 @@
+# Server
+
+- **Compilazione interfaccia e implementazione**: `javac EchoInterface.java`, `javac EchoRMIServer.java`
+
+- **Generazione Stub e Skeleton**: `rmic -vcompat EchoRMIServer`
+
+- **Esecuzione server**: `rmiregistry`, `java EchoRMIServer`
+
+# Client
+
+- **Compilazione**: `javac EchoRMIClient.java`
+
+- **Esecuzione**: `java EchoRMIClient`
