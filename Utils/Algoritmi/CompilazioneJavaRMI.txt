@@ -10,4 +10,4 @@
 
 - **Compilazione**: `javac EchoRMIClient.java`
 
-- **Esecuzione**: `java EchoRMIClient`
+- **Esecuzione**: `java EchoRMIClient <ipRMI> <nomeServizio>` 
