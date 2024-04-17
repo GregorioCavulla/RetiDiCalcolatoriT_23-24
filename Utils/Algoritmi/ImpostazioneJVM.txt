@@ -1,4 +1,4 @@
-Per impostare Java 11 come defaut: 
+java Per impostare Java 11 come defaut: 
 
  1) vim ~/.bashrc (aprire/creare il file con un editor es. vim)
 
