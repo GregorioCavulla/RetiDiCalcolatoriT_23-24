@@ -1,25 +1,34 @@
-/* RPC_xFile.x 
- *
- */
+/*
+*   RPC_xFile
+*/
 
+/*
+*   Struttura di input 
+*/
 struct Input{
-	char direttorio[256];
-	char carattere;
-	int occorrenze;
+    char direttorio[256];
+    char carattere;
+    int occorrenze;
 };
 
 struct FileName{
-	char name[256];
+    char fileName[256];
 };
 
+/*
+*   Struttura di output
+*/
 struct OutputFileList{
-	int numeroFiles;
-	FileName files[6];
+    int numeroFiles;
+    FileName files[6];
 };
 
-program FILEPROG{
-	version FILEVERS{
-		int ELIMINA_OCCORRENZE(FileName) = 1;
-		OutputFileList LISTA_FILE_CARATTERE(Input) = 2;
-	} = 1;
-} = 0x20000015;
+/*
+*   Definizione del programma FILEPROG
+*/
+program FILEPROG {
+    version FILEVERS {
+        int ELIMINA_OCCORRENZE(FileName) = 1;
+        OutputFileList LISTA_FILE_CARATTERE(Input) = 2;
+    } = 1;
+} = 0x20000020;

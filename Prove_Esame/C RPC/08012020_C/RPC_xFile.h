@@ -22,7 +22,7 @@ struct Input {
 typedef struct Input Input;
 
 struct FileName {
-	char name[256];
+	char fileName[256];
 };
 typedef struct FileName FileName;
 
@@ -32,7 +32,7 @@ struct OutputFileList {
 };
 typedef struct OutputFileList OutputFileList;
 
-#define FILEPROG 0x20000015
+#define FILEPROG 0x20000020
 #define FILEVERS 1
 
 #if defined(__STDC__) || defined(__cplusplus)

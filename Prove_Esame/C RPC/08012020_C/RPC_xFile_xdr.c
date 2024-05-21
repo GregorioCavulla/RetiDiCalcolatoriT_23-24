@@ -27,7 +27,7 @@ xdr_FileName (XDR *xdrs, FileName *objp)
 	register int32_t *buf;
 
 	int i;
-	 if (!xdr_vector (xdrs, (char *)objp->name, 256,
+	 if (!xdr_vector (xdrs, (char *)objp->fileName, 256,
 		sizeof (char), (xdrproc_t) xdr_char))
 		 return FALSE;
 	return TRUE;

@@ -1,119 +1,128 @@
+/*RPC_Client.c*/
 
 #include "RPC_xFile.h"
 #include <rpc/rpc.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
-#define MAX_STRING 128 //
-int isNumber(char *text) {
-  int j;
-  j = strlen(text);
-  while (j--) {
-    if (text[j] >= '0' && text[j] <= '9')
-      continue;
+// Declaration for gets function
+char *gets(char *s);
 
-    return 0;
-  }
-  return 1;
-}
+int main(int argc, char *argv[])
+{
+  CLIENT *cl;   // gestore del trasporto
+  char *server; // nome host
 
-int main(int argc, char *argv[]) {
-  char *host;              // nome host
-  CLIENT *cl;              // gestore del trasporto
-  char buffer[MAX_STRING]; // buffer per leggere stringhe
-  // dichiarazioni delle variabili
-  int i, *ris;
-  char c;
-  OutputFileList *out;
-  void *voidValue;
+  int *ris;            // Output of the RPC if integer
+  OutputFileList *out; // Output of the RPC if struct
 
-  static FileName nome_file;
+  char car, buffer[128]; // buffer per leggere stringhe
+
+  // dichiarazioni statiche delle variabili per RPC che non possono essere
+  // salvate sullo stack locale, fanno riferimento alle strutture dichiarate in
+  // RPC_xFile.x
+  static FileName nomeFile;
   static Input input;
 
-  /****************************************************************************************************************/
-
   // CONTROLLO DEGLI ARGOMENTI
-  if (argc != 2) {
-    printf("[ERROR] usage: %s server_host\n", argv[0]);
+  if (argc != 2)
+  {
+    fprintf(stderr, "uso: %s nomehost\n", argv[0]);
     exit(1);
   }
-  host = argv[1];
 
   // CREAZIONE GESTORE DI TRASPORTO
-  cl = clnt_create(host, FILEPROG, FILEVERS, "udp");
-  if (cl == NULL) {
-    clnt_pcreateerror(host);
+  cl = clnt_create(argv[1], FILEPROG, FILEVERS, "udp");
+  if (cl == NULL)
+  {
+    clnt_pcreateerror(argv[1]);
     exit(1);
   }
 
-  // INTERAZIONE CON L UTENTE
-  printf(" Operazioni: 1 per Elimina caratteri numerici in un file, 2 per "
-         "Lista file carattere \n");
-  while (gets(buffer) != 0) {
-    if (strcmp(buffer, "1") == 0) { // Elimina caratteri numerici in un file
-      printf("inserisci il nome di un file: \n");
-      if (gets(nome_file.name) != 0) {
-        ris = elimina_occorrenze_1(&nome_file, cl);
-        if (ris == NULL) {
-          clnt_perror(cl, host);
-          exit(1);
-        } else if (*ris == -1) {
-          printf("Il direttorio richiesto non esiste sul server!\n");
-        } else {
-          printf("Ho eliminato %d numeri:\n", *ris);
-        }
-      } else {
-        printf("[ERROR] Errore di input\n");
-      }
+  // INTERAZIONE CON L'UTENTE
+  printf("Operazioni: 1= elimina occorrenze, 2=lista file; ^D per terminare\n");
 
-    } else if (strcmp(buffer, "2") ==
-               0) { // Richiesta conteggio caratteri nel file
-
-      printf("inserisci il nome del direttorio: \n");
-      if (gets(input.direttorio) != 0) {
-        printf("inserisci il caratter: \n");
-        if (gets(input.carattere) != 0) {
-          printf("inserisci il numero di occorrenze: \n");
-          // controllo intero
-          while (scanf("%d", &input.occorrenze) != 1) {
-            do {
-              c = getchar();
-              printf("%c", c);
-            } while (c != '\n');
-            printf("Inserire un intero\n");
-            continue;
-          } // fine controllo intero
-          out = lista_file_carattere_1(&input, cl);
-          if (out == NULL) {
-            clnt_perror(cl, host);
-            exit(1);
-          } else if (out->numeroFiles == -1) {
-            printf("Il direttorio richiesto non esiste sul server!\n");
-          } else {
-            printf("Ho trovato %d file:\n", out->numeroFiles);
-            for (i = 0; i < out->numeroFiles; i++) {
-              printf("%s\n", out->files[i].name);
-            }
-          }
-
-        } else {
-          printf("[ERROR] Errore di input\n");
-        }
-      } else {
-        printf("[ERROR] Errore di input\n");
-      }
-    }      // if 2
-    else { // Operazione richiesta non disponibile
-      printf("[ERROR]Operazione richiesta non disponibile!!\n");
+  while (gets(buffer))
+  {
+    // CONTROLLO OPERAZIONE INSERITA
+    if (strcmp(buffer, "1") != 0 && strcmp(buffer, "2") != 0)
+    {
+      printf("Operazione non disponibile, inserire i valori indicati\n");
+      printf(
+          "Operazioni: 1= elimina occorrenze, 2=lista file; ^D per terminare\n");
+      continue;
     }
-    printf("Inserire:\n1\t inserimentoEvento \n2\t Biglietti \n^D\tper "
-           "terminare: ");
+    else if (strcmp(buffer, "1") == 0)
+    { // OPERAZIONE 1, elimina occorrenze
 
-  } // while
+      printf("Richiesta operazione: %s\n", buffer);
+      // esempio operazione con input fileName e output intero
+      printf("inserisci il nome del file: \n");
+      gets(nomeFile.fileName);
 
-  // Libero le risorse, distruggendo il gestore di trasporto
+      ris = elimina_occorrenze_1(&nomeFile, cl);
+
+      if (ris < 0)
+      {
+        clnt_perror(cl, "E' avvenuto un errore lato server");
+      }
+      else if (ris == -1)
+      {
+        printf("file o directory non presente sul server \n");
+      }
+      else
+      {
+        printf("Successo: Ho eliminato %d numeri\n", ris);
+      }
+    }
+    else if (strcmp(buffer, "2") == 0)
+    { // OPERAZIONE 2 conteggio caratteri file remoto
+      printf("Richiesta operazione: %s\n", buffer);
+      // esempio operazione con input fileName e output struct
+      printf("inserisci il nome del direttorio: \n");
+
+      gets(input.direttorio);
+      printf("inserisci il carattere: \n");
+      gets(input.carattere);
+      printf("inserisci il numero di occorrenze \n");
+
+      // controllo che numero di occorrenze sia accettabile, fino a newline (\n)
+      while (scanf("%d", &input.occorrenze) != 1)
+      {
+        do
+        {
+          car = getchar();
+          printf("%c", car);
+        } while (car != "\n");
+        printf("inserisci un intero");
+        continue;
+      }
+      gets(buffer);
+
+      out = lista_file_carattere_1(&input, cl);
+
+      if (out == NULL)
+      {
+        clnt_perror(cl, "E' avvenuto un errore lato server");
+      }
+      else if (out->numeroFiles == -1)
+      { // parametro impostato dal server per
+        //  segnalare errore, e.g. file o direttorio non presenti
+        printf("Errore: il direttorio non esiste sul server");
+      }
+      else
+      {
+        printf("Successo: trovato %d file di testo con più di %d occorrenze nel nome del carattere %c", out->files, input.occorrenze, input.carattere);
+        for (int i = 0; i < out->numeroFiles; i++)
+        {
+          printf("%s\n", out->files[i].fileName);
+        }
+      }
+    } // endif
+  }
+
+  // DISTRUZIONE GESTORE DI TRASPORTO
   clnt_destroy(cl);
-  printf("TERMINO ");
+  printf("Client: termino...\n");
   exit(0);
-} // main
+}

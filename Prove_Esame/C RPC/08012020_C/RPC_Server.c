@@ -1,104 +1,119 @@
-
+/* RPC_Server.c */
 
 #include "RPC_xFile.h"
-#include "Soluzione/RPC_xFile.h"
 #include <dirent.h>
 #include <fcntl.h>
 #include <rpc/rpc.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <ctype.h>
 #include <unistd.h>
 
-// eliminare tutte le occorrenze di caratteri numerici all'interno di un file di
-// testo
-int *elimina_occorrenze_1_svc(FileName *input, struct svc_req *cl) {
+// DEFINIZIONE PRIMA OPERAZIONE
+
+int *elimina_occorrenze_1_svc(FileName *input, struct svc_req *rp)
+{
   static int result = -1;
+
   int fd_file, nread, fd_temp;
-  char fileNameTemp[256];
+  char fileNameTemp[NAME_MAX];
 
-  printf("Richiesto file %s\n", input->name);
+  printf("richiesto file %s \n", input->fileName);
 
-  if ((fd_file = open(input->name, O_RDONLY)) < 0) {
-    result = -1;
+  fd_file = open(input->fileName, O_RDONLY);
+  if (fd_file < 0)
+  {
     printf("File inesistente\n");
-    return (&result);
-  } else {
-    // creao il file temp che andrà a sostituire il file originale
+    return (&result); //-1 file non esistente
+  }
+  else
+  {
     fileNameTemp[0] = '\0';
-    strcat(fileNameTemp, input->name);
-    strcat(fileNameTemp, "_Temp");
-
-    if ((fd_temp = open(fileNameTemp, O_CREAT | O_WRONLY, 0777)) < 0) {
-      perror("Errore apertura file temp");
+    strcat(fileNameTemp, input->fileName);
+    if ((fd_temp = open(fileNameTemp, O_CREAT | O_RDONLY, 0777)) < 0)
+    {
+      perror("errore apertura file temp");
       return (&result);
-    } else {
+    }
+    else
+    {
       int nread;
       char car;
       result = 0;
-      while ((nread = read(fd_file, &car, 1)) > 0) { // lettura a carattere
-        if (!isdigit(car)) {
+      while (nread = read(fd_file, &car, 1) > 0)
+      {
+        if (isdigit(car))
+        {
           write(fd_temp, &car, 1);
-        } else {
+        }
+        else
+        {
           result++;
         }
       }
     }
+
+    if (result >= 0)
+    {
+      printf("nel file %s sono stati eliminati %d caratteri numerici\n", input->fileName, result);
+    }
+
+    close(fd_file);
+    close(fd_temp);
+
+    rename(fileNameTemp, input->fileName);
+
+    return (&result);
   }
+}
 
-  if (result >= 0) {
-    printf("Nel file %s sono stati eliminati %d caratteri numerici\n",
-           input->name, result);
-  }
+// DEFINIZIONE SECONDA OPERAZIONE
 
-  close(fd_file);
-  close(fd_temp);
-
-  rename(fileNameTemp, input->name);
-
-  return (&result);
-} // fine procedura 1
-
-// lista dei file di testo di un direttorio i cui nomi i cui nomi contengono
-// almeno uno specificato numero di occorrenze di un carattere indicato
-// dall’utente
-
-OutputFileList *lista_file_carattere_1_svc(Input *input, struct svc_req *rp) {
-  DIR *dir;
-  struct dirent *dd; // struttura per la lettura dei file nella directory
-  int nOccorrenze,
-      fileNameLen; // numero di occorrenze del carattere, lunghezza del fileName
-  char fileName[256];
+OutputFileList *lista_file_carattere_1_svc(Input *input, struct svc_req *rp)
+{
   static OutputFileList result;
 
-  printf("Richiesto direttorio %s\n", input->direttorio);
-  if ((dir = opendir(input->direttorio)) == NULL) {
+  DIR *dir;
+  struct dirent *dd;
+  int occorrenze, fileNameL;
+  char fileName[256];
+
+  printf("richiesto direttorio %s\n", input->direttorio);
+  if ((dir = opendir(input->direttorio)) == NULL)
+  {
+    printf("direttorio inesistente");
     result.numeroFiles = -1;
     return (&result);
   }
 
-  // Max 6 files can be returnetd, so we control this in the while
-
   result.numeroFiles = 0;
-
-  while ((dd = readdir(dir)) != NULL && result.numeroFiles < 6) {
+  while ((dd = readdir(dir)) != NULL && result.numeroFiles < 6)
+  {
     strcpy(fileName, dd->d_name);
 
-    if (fileNameLen > 4 && fileName[fileNameLen - 1] == 't' &&
-        fileName[fileNameLen - 2] == 'x' && fileName[fileNameLen - 3] == 't' &&
-        fileName[fileNameLen - 4] == '.') {
-      nOccorrenze = 0;
+    fileNameL = strlen(fileName);
 
-      for (int i = 0; i < fileNameLen; i++) {
-        if (fileName[i] == input->carattere) {
-          nOccorrenze++;
-        }
+    if (fileNameL > 4 &&
+        fileName[fileNameL - 1] == 't' &&
+        fileName[fileNameL - 2] == 'x' &&
+        fileName[fileNameL - 3] == 't' &&
+        fileName[fileNameL - 4] == '.')
+    {
 
-        if (nOccorrenze == input->carattere) {
-          strcpy(result.files[result.numeroFiles++].name, fileName);
-          break;
+      occorrenze = 0;
+
+      for (int i = 0; i < fileNameL; i++)
+      {
+        if (fileName[i] == input->carattere)
+        {
+          occorrenze++;
+          if (occorrenze == input->occorrenze)
+          {
+            strcpy(result.files[result.numeroFiles++].fileName, fileName);
+            break;
+          }
         }
       }
     }
