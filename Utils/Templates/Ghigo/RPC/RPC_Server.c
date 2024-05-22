@@ -12,8 +12,9 @@
 
 // DEFINIZIONE PRIMA OPERAZIONE
 
-<T> *operazione_1_svc(<parametro>, struct svc_req *rp) {
-  static<T> result;
+<T> *operazione_1_svc(<parametro>, struct svc_req *rp)
+{
+  static<T> result = -1; // default in caso di errore
   // codice operazione
 
   return (&result);
@@ -21,7 +22,8 @@
 
 // DEFINIZIONE SECONDA OPERAZIONE
 
-<T> *operazione_2_svc(<parametro>, struct svc_req *rp) {
+<T> *operazione_2_svc(<parametro>, struct svc_req *rp)
+{
   static<T> result;
   // codice operazione
 

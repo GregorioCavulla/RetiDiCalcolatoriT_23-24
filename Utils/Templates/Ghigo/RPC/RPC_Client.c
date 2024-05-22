@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
   // dichiarazioni statiche delle variabili per RPC che non possono essere
   // salvate sullo stack locale, fanno riferimento alle strutture dichiarate in
   // RPC_xFile.x
-  static Name fileName;
+  static FileName fileName;
   static Name dirName;
 
   // CONTROLLO DEGLI ARGOMENTI

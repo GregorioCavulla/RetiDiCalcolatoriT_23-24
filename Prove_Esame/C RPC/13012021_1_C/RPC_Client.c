@@ -1,121 +1,101 @@
+/*RPC_Client.c*/
 
+#include "RPC_xFile.h"
 #include <rpc/rpc.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "RPC_xFile.h"
+int main(int argc, char *argv[])
+{
+  CLIENT *cl;   // gestore del trasporto
+  char *server; // nome host
 
-#define MAX_STRING 128 //
-int isNumber(char *text) {
-  int j;
-  j = strlen(text);
-  while (j--) {
-    if (text[j] >= '0' && text[j] <= '9')
-      continue;
+  int *ris;    // Output of the RPC if integer
+  Output *out; // Output of the RPC if struct
 
-    return 0;
-  }
-  return 1;
-}
+  char car, buffer[128]; // buffer per leggere stringhe
 
-int main(int argc, char *argv[]) {
-  char *host;              // nome host
-  CLIENT *cl;              // gestore del trasporto
-  char buffer[MAX_STRING]; // buffer per leggere stringhe
-  // dichiarazioni delle variabili
-  int i, *ris;
-  char c;
-  void *voidValue;
-  Output *out;
-
+  // dichiarazioni statiche delle variabili per RPC che non possono essere
+  // salvate sullo stack locale, fanno riferimento alle strutture dichiarate in
+  // RPC_xFile.x
   static Name fileName;
   static Name dirName;
 
-  /****************************************************************************************************************/
-
   // CONTROLLO DEGLI ARGOMENTI
-  if (argc != 2) {
-    printf("[ERROR] usage: %s server_host\n", argv[0]);
+  if (argc != 2)
+  {
+    fprintf(stderr, "uso: %s nomehost\n", argv[0]);
     exit(1);
   }
-  host = argv[1];
 
   // CREAZIONE GESTORE DI TRASPORTO
-  cl = clnt_create(host, FILEPROG, FILEVERS, "udp");
-  if (cl == NULL) {
-    clnt_pcreateerror(host);
+  cl = clnt_create(argv[1], FILEPROG, FILEVERS, "udp");
+  if (cl == NULL)
+  {
+    clnt_pcreateerror(argv[1]);
     exit(1);
   }
 
-  // INTERAZIONE CON L UTENTE
+  // INTERAZIONE CON L'UTENTE
+  printf("Operazioni: 1= ELIMINA_OCCORRENZE_NUMERICI, 2=LISTA_SOTTODIRETTORI; ^D per terminare\n");
 
-        printf("Inserire:\n1\t Lista dei sottodirettori \n
-			2\t Elimina caratteri numerici \n^D\tper terminare: ");
-
-	while (gets(buffer) != 0)
-	{
-    // OPERAZIONE 1
-    if (strcmp(buffer, "1") == 0) {
-
-      printf("inserire il nome del direttorio: \n");
-      gets(dirName.name);
-
-      // Invocazione remota
-      out = lista_sottodir_1(&dirName, cl);
-
-      // Controllo del risultato se punta ad un indirizzo vuoto
-      if ((out == (int *)NULL)) {
-        // Errore di RPC
-        clnt_perror(cl, host);
-        exit(1);
-      }
-
-      printf("Operazione fatta \n");
-      // il valore all indirizzo puntato
-      if (*out < 0) {
-        printf("Problema del server");
-      } else {
-        printf("operazione riuscita");
-      }
-
-    } // if 1
-
-    // SE OPERAZIONE 2
-    else if (strcmp(buffer, "2") == 0) {
-
-      printf("inserire il nome del direttorio: \n");
+  while (gets(buffer))
+  {
+    // CONTROLLO OPERAZIONE INSERITA
+    if (strcmp(buffer, "1") != 0 && strcmp(buffer, "2") != 0)
+    {
+      printf("Operazione non disponibile, inserire i valori indicati\n");
+      printf(
+          "Operazioni: 1= ELIMINA_OCCORRENZE_NUMERICI, 2=LISTA_SOTTODIRETTORI; ^D per terminare\n");
+      continue;
+    }
+    else if (strcmp(buffer, "1") == 0)
+    { // ELIMINA_OCCORRENZE_NUMERICI
+      printf("Richiesta operazione: %s\n", buffer);
+      // esempio operazione con input fileName e output intero
+      printf("inserisci il nome del file: \n");
       gets(fileName.name);
 
-      // Invocazione remota
-      ris = elimina_occorrenze_1(&fileName, cl);
+      ris = elimina_occorrenze_numerici_1(&fileName, cl);
 
-      // Controllo del risultato
-      if (ris == NULL) {
-        // Errore di RPC
-        clnt_perror(cl, host);
-        exit(1);
+      if (ris < 0)
+      {
+        clnt_perror(cl, "E' avvenuto un errore lato server");
       }
+      else
+      {
+        printf("Successo: %d\n", *ris);
+      }
+    }
+    else if (strcmp(buffer, "2") == 0)
+    { // OPERAZIONE 2
+      printf("Richiesta operazione: %s\n", buffer);
+      // esempio operazione con input fileName e output struct
+      printf("inserisci il nome del direttorio: \n");
+      gets(dirName.name);
 
-      if (*ris < 0)
-        // Eventuale errore di logica del programma
-        printf("[ERROR] nel server");
-      else if (*ris == 0)
-        // Tutto ok
-        printf("Ho eliminato %d caratteri numerici nel file %s\n", *ris,
-               fileName.name);
-    } // if 2
-    // ALTRIMENTI
-    else
-      printf("[ERROR]Operazione richiesta non disponibile!!\n");
+      out = lista_sottodirettori_1(&dirName, cl);
 
-    printf("Inserire:\n1\t Lista dei sottodirettori \n
-			2\t Elimina caratteri numerici \n^D\tper terminare: ");
+      if (out == NULL)
+      {
+        clnt_perror(cl, "E' avvenuto un errore lato server");
+      }
+      else if (out->numeroDirettori ==
+               -1)
+      { // parametro impostato dal server per
+        //  segnalare errore, e.g. file o direttorio non presenti
+        printf("Errore: %s\n", out->files);
+      }
+      else
+      {
+        printf("Successo: %s\n", out->files);
+      }
+    } // endif
+  }
 
-	} // while
-
-	// Libero le risorse, distruggendo il gestore di trasporto
-	clnt_destroy(cl);
-	printf("TERMINO ");
-	exit(0);
-} // main
+  // DISTRUZIONE GESTORE DI TRASPORTO
+  clnt_destroy(cl);
+  printf("Client: termino...\n");
+  exit(0);
+}
