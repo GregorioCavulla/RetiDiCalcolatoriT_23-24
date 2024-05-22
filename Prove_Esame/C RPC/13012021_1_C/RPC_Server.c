@@ -146,7 +146,10 @@ Output *lista_sottodirettori_1_svc(Name *dirName, struct svc_req *rp)
       // printf("si, memset funziona\n\n");
     }
   }
-  printf("finito il check dei sottodir, funziona?\n\n");
+
+  printf("finito il check dei sottodir, funziona?\n");
+
+  // compila, esegue, ma si ferma qui, e si spacca, senza dare nessun errore strano, il cliente dice che c'è stato un errore server.
 
   printf("invio tutto, ciao");
   return (&result);
