@@ -2,7 +2,6 @@
 *   RPC_xFile
 */
 
-
 /*
 *   Struttura nome per file o direttori
 */
@@ -14,7 +13,8 @@ struct Name{
 *   Struttura di output
 */
 struct Output{
-    int numeroDirettori;
+
+    int numeroFiles;
     Name files[6];
 };
 
@@ -23,7 +23,7 @@ struct Output{
 */
 program FILEPROG {
     version FILEVERS {
-        int ELIMINA_OCCORRENZE_NUMERICI(Name) = 1;
-        Output LISTA_SOTTODIRETTORI(Name) = 2;
+        int ELIMINA_OCCORRENZE_NUMERICHE(Name) = 1;
+        Output LISTA_FILE_DIRETTORIO(Name) = 2;
     } = 1;
 } = 0x20000020;

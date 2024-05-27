@@ -88,13 +88,12 @@ Output *lista_sottodirettori_1_svc(Name *dirName, struct svc_req *rp)
 
   result.numeroDirettori = 0;
 
-  while ((entry = readdir(dir)) != NULL && result.numeroDirettori < 10)
+  while ((entry = readdir(dir)) != NULL && result.numeroDirettori < 6)
   {
 
     // Ignoro il direttorio corrente e quello padre
     if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
     {
-      //  printf("ci siamo\n");
       continue;
     }
 
@@ -116,41 +115,33 @@ Output *lista_sottodirettori_1_svc(Name *dirName, struct svc_req *rp)
 
     if (subDir != NULL)
     {
-      int giro = 0;
       while ((entry1 = readdir(subDir)) != NULL)
       {
-        giro++;
-        //  printf("giro numero %d, ho trovato %s\n\n", giro, entry1->d_name);
         strcpy(fileName, entry1->d_name);
         fileNameLen = strlen(fileName);
-        if (fileNameLen > 4 && fileName[fileNameLen - 4] == '.' && fileName[fileNameLen - 3] == 't' && fileName[fileNameLen - 2] == 'x' && fileName[fileNameLen - 1] == 't')
+        if (fileNameLen > 4 && fileName[fileNameLen - 2] == 'x' && fileName[fileNameLen - 1] == 't' && fileName[fileNameLen - 3] == 't' && fileName[fileNameLen - 4] == '.')
         {
           fileCounter++;
-          //    printf("Trovato il file di testo %s nella cartella %s\n", fileName, entry->d_name);
-        }
-        if (fileCounter >= 5)
-        {
-          //    printf("aggiungo alla lista di result il direttorio: %s\n", entry->d_name);
-          strcpy(result.files[result.numeroDirettori].name, entry->d_name);
-          result.numeroDirettori++;
-          //    for (int i = 0; i < result.numeroDirettori; i++)
-          //    {
-          //      printf("result: %s, %d\n", result.files[i].name, result.numeroDirettori);
-          //    }
+          printf("Trovato il file di testo %s nella cartella %s\n", fileName, entry->d_name);
         }
       }
-      // printf("chiudo il subdir, funzionerà??\n");
       closedir(subDir);
+      // printf("chiudo il subdir, funzionerà??\n");
+
+      if (fileCounter >= 5)
+      {
+        //    printf("aggiungo alla lista di result il direttorio: %s\n", entry->d_name);
+        strcpy(result.files[result.numeroDirettori].name, entry->d_name);
+        result.numeroDirettori++;
+      }
+
       // printf("chiuso il subdir, memset funziona??\n");
       memset(path, 0, 256);
       // printf("si, memset funziona\n\n");
     }
   }
-
-  printf("finito il check dei sottodir, funziona?\n");
-
   // compila, esegue, ma si ferma qui, e si spacca, senza dare nessun errore strano, il cliente dice che c'è stato un errore server.
 
-  printf("invio tutto, ciao");
+  closedir(dir);
   return (&result);
 }

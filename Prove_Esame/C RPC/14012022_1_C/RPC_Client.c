@@ -3,6 +3,8 @@
 #include "RPC_xFile.h"
 #include <rpc/rpc.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 int main(int argc, char *argv[])
 {
@@ -36,7 +38,7 @@ int main(int argc, char *argv[])
   }
 
   // INTERAZIONE CON L'UTENTE
-  printf("Operazioni: 1= ELIMINA_OCCORRENZE_NUMERICI, 2=LISTA_SOTTODIRETTORI; ^D per terminare\n");
+  printf("Operazioni: 1=elimina occorrenze numeriche, 2=lista file direttorio; ^D per terminare\n");
 
   while (gets(buffer))
   {
@@ -45,17 +47,17 @@ int main(int argc, char *argv[])
     {
       printf("Operazione non disponibile, inserire i valori indicati\n");
       printf(
-          "Operazioni: 1= ELIMINA_OCCORRENZE_NUMERICI, 2=LISTA_SOTTODIRETTORI; ^D per terminare\n");
+          "Operazioni: 1=elimina occorrenze numeriche, 2=lista file direttorio; ^D per terminare\n");
       continue;
     }
     else if (strcmp(buffer, "1") == 0)
-    { // ELIMINA_OCCORRENZE_NUMERICI
+    { // OPERAZIONE 1
       printf("Richiesta operazione: %s\n", buffer);
-      //  esempio operazione con input fileName e output intero
+      // esempio operazione con input fileName e output intero
       printf("inserisci il nome del file: \n");
       gets(fileName.name);
 
-      ris = elimina_occorrenze_numerici_1(&fileName, cl);
+      ris = elimina_occorrenze_numeriche_1(&fileName, cl);
 
       if (ris < 0)
       {
@@ -63,35 +65,34 @@ int main(int argc, char *argv[])
       }
       else
       {
-        printf("successo: ho eliminato %d caratteri nel file %s", *ris, fileName);
+        printf("Successo: ho eliminato %d caratteri numerici\n", *ris);
       }
-    } // elimina occorrenze
-
+    }
     else if (strcmp(buffer, "2") == 0)
     { // OPERAZIONE 2
-      // printf("Richiesta operazione: %s\n", buffer);
-      //   esempio operazione con input fileName e output struct
-      printf("inserisci il nome del direttorio: \n");
+      printf("Richiesta operazione: %s\n", buffer);
+      // esempio operazione con input fileName e output struct
+      printf("inserisci il nome del file: \n");
       gets(dirName.name);
 
-      out = lista_sottodirettori_1(&dirName, cl);
-      // output previsto: sottoDirettorioBuono, 1
+      out = lista_file_direttorio_1(&dirName, cl);
+
       if (out == NULL)
       {
         clnt_perror(cl, "E' avvenuto un errore lato server");
-        d
       }
-      else if (out->numeroDirettori == -1)
+      else if (out->numeroFiles ==
+               -1)
       { // parametro impostato dal server per
         //  segnalare errore, e.g. file o direttorio non presenti
         printf("Errore: %s\n", out->files);
       }
       else
       {
-        printf("Ho trovato %d sottodirettori di %s che contengono almeno 5 file di testo\n", out->numeroDirettori, dirName.name);
-        for (int i = 0; i < out->numeroDirettori; i++)
+        printf("Successo:\n");
+        for (int i = 0; i < out->numeroFiles; i++)
         {
-          printf("%s\n", out->files[i].name);
+          printf("%d) %s\n", i + 1, out->files[i]);
         }
       }
     } // endif

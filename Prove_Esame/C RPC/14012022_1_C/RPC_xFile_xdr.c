@@ -23,7 +23,7 @@ xdr_Output (XDR *xdrs, Output *objp)
 	register int32_t *buf;
 
 	int i;
-	 if (!xdr_int (xdrs, &objp->numeroDirettori))
+	 if (!xdr_int (xdrs, &objp->numeroFiles))
 		 return FALSE;
 	 if (!xdr_vector (xdrs, (char *)objp->files, 6,
 		sizeof (Name), (xdrproc_t) xdr_Name))
