@@ -3,6 +3,7 @@
     "cctype": "c",
     "chrono": "c",
     "text_encoding": "c",
-    "typeinfo": "c"
+    "typeinfo": "c",
+    "functional": "c"
   }
 }
