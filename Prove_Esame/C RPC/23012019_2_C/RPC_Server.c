@@ -43,6 +43,13 @@ void inizializza()
   strcpy(table[2].patente, "15486");
   strcpy(table[2].tipo, "camper");
   strcpy(table[2].folder_img, "EE123DE_img/");
+
+  printf("inizializzato\n");
+
+  for (int i = 0; i < N; i++)
+  {
+    printf("%s|%s|%s|%s\n", table[i].targa, table[i].patente, table[i].tipo, table[i].folder_img);
+  }
 }
 
 // DEFINIZIONE PRIMA OPERAZIONE
@@ -58,10 +65,12 @@ Output *visualizza_prenotazioni_1_svc(Tipo *input, struct svc_req *rp)
     inizializza();
   }
 
+  printf("richiesto tipo: %s\n", input->tipo);
+
   // codice operazione
   for (int i = 0; i < N; i++)
   {
-    if (table[i].targa[0] > 'E' || (table[i].targa[0] == 'E' && table[i].targa[1] == 'D'))
+    if (table[i].targa[0] > 'E' || (table[i].targa[0] == 'E' && table[i].targa[1] >= 'D') || result.check >= 6)
     {
       if (strcmp(table[i].tipo, input->tipo) == 0)
       {

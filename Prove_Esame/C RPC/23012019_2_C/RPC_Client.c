@@ -74,15 +74,26 @@ int main(int argc, char *argv[])
         }
       }
 
-      out = visualizza_prenotazioni_1_svc(&tipo, cl);
+      out = visualizza_prenotazioni_1(&tipo, cl);
 
-      if (out->check = 0)
+      if (out == NULL)
+      {
+        clnt_perror(cl, "E' avvenuto un errore lato server");
+      }
+      else if (out->check = 0)
       {
         printf("non è stata trovata nessuna prenotazione con tipo %s\n", tipo.tipo);
       }
       else
       {
-        printf("Successo!\nLista prenotazioni con tipo %s: %s\n", tipo.tipo, *out->prenotazioni);
+        printf("Successo!\nLista prenotazioni con tipo %s:\n", tipo.tipo);
+        for (int i = 0; i < N; i++)
+        {
+          if (strlen(out->prenotazioni[i].targa) > 0)
+          {
+            printf("%s|%s|%s|%s\n", out->prenotazioni[i].targa, out->prenotazioni[i].patente, out->prenotazioni[i].tipo, out->prenotazioni[i].folder_img);
+          }
+        }
       }
     }
     else if (strcmp(buffer, "2") == 0)
@@ -94,7 +105,7 @@ int main(int argc, char *argv[])
 
       while (ok == 0)
       {
-        if (strlen(input.targa) == 8)
+        if (strlen(input.targa) == 7)
         {
           ok = 1;
         }
@@ -123,7 +134,7 @@ int main(int argc, char *argv[])
         }
       }
 
-      ris = aggiorna_liecnza_1_svc(&input, cl);
+      ris = aggiorna_licenza_1(&input, cl);
 
       if (ris < 0)
       {
@@ -134,6 +145,7 @@ int main(int argc, char *argv[])
         printf("Successo!\n");
       }
     } // endif
+    ok = 0;
   }
 
   // DISTRUZIONE GESTORE DI TRASPORTO

@@ -38,6 +38,6 @@ struct Output{
 program FILEPROG {
     version FILEVERS {
         Output VISUALIZZA_PRENOTAZIONI(Tipo) = 1;
-        int AGGIORNA_LIECNZA(Input) = 2;
+        int AGGIORNA_LICENZA(Input) = 2;
     } = 1;
 } = 0x20000020;
