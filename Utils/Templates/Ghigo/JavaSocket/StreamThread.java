@@ -3,33 +3,32 @@ import java.net.*;
 
 public class StreamThread extends Thread {
 
-    private Socket clientSocket=null; // socket per comunicare con il client
+    private Socket clientSocket = null; // socket per comunicare con il client
     private String[][] dati; // struttura dati condivisa tra i thread
 
-    public StreamThread(Socket socket, String [][] dati) {
+    public StreamThread(Socket socket, String[][] dati) {
         this.clientSocket = socket;
-        this.dati=dati;
+        this.dati = dati;
     }
 
     @Override
-    public void run(){
-        System.out.println("[DEBUG] Attivazione figlio: "+ Thread.currentThread().getName());
+    public void run() {
+        System.out.println("[DEBUG] Attivazione figlio: " + Thread.currentThread().getName());
 
         DataInputStream inSock; // stream di input
         DataOutputStream outSock; // stream di output
 
-        //CREAZIONE STREAM INPUT E OUTPUT
+        // CREAZIONE STREAM INPUT E OUTPUT
         try {
             inSock = new DataInputStream(clientSocket.getInputStream());
             outSock = new DataOutputStream(clientSocket.getOutputStream());
-        }
-        catch (IOException ioe) {
-            System.out.println("[ERROR] Problemi nella creazione degli stream di input/output " );
+        } catch (IOException ioe) {
+            System.out.println("[ERROR] Problemi nella creazione degli stream di input/output ");
             ioe.printStackTrace();
             return;
         }
 
-        //CORPO DELLA THREAD
+        // CORPO DELLA THREAD
         try {
             while (true) {
                 System.out.println("[DEBUG] pre ricezione");
@@ -37,15 +36,17 @@ public class StreamThread extends Thread {
                 System.out.println("[DEBUG]ricevuto richiesta di servizio " + service);
 
                 if (service == '1') {
-                    //SERVIZIO 1
-                    //FINE
-                } else if (service == '2'){
-                    //SERVIZIO 2
-                    //FINE
-                }
-            }   // fine ciclo interazione
+                    // SERVIZIO 1
 
-        }  catch (EOFException e) {
+                    // FINE
+                } else if (service == '2') {
+                    // SERVIZIO 2
+
+                    // FINE
+                }
+            } // fine ciclo interazione
+
+        } catch (EOFException e) {
             System.out.println("Terminazione. (Thread=" + getName() + ")");
         } catch (SocketTimeoutException e) {
             System.out.println("[ERROR]: Socket timed out. (Thread=" + getName() + ")");

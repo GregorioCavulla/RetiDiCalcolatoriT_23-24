@@ -1,3 +1,4 @@
+
 /**
  * InviaFileServer.java
  *  + contare il numero delle linee che contengono almeno uno specificato numero di occorrenz di un carattere
@@ -30,101 +31,101 @@ class InviaFileServerThread extends Thread {
         }
         try {
             try {
-                String servizio,dirName;
+                String servizio, dirName;
                 char carattere;
-                int occorrenze,res,occorrenze_linea,cread,nFiles,nread;
-                File dirCorr,dir;
+                int occorrenze, res, occorrenze_linea, cread, nFiles, nread;
+                File dirCorr, dir;
                 boolean trovato;
                 FileReader fr;
                 FileInputStream fileStream;
-                byte [] buffer = new byte[4096];
+                byte[] buffer = new byte[4096];
                 long nByte;
 
                 while ((servizio = inSock.readUTF()) != null) {
-                    if(servizio.equalsIgnoreCase("C")){
-                        //Conteggio numero righe con occorrenze 
+                    if (servizio.equalsIgnoreCase("C")) {
+                        // Conteggio numero righe con occorrenze
 
-                        //Leggo carattere
+                        // Leggo carattere
                         carattere = inSock.readChar();
 
-                        //Leggo occorrenze
+                        // Leggo occorrenze
                         occorrenze = inSock.readInt();
 
-                        //Leggo dir corrente
+                        // Leggo dir corrente
                         dirCorr = new File(".");
                         res = 0;
                         trovato = false;
 
-                        for(File f:dirCorr.listFiles()){
-                            if(f.isFile() && f.canRead() && f.getName().endsWith(".txt")){
+                        for (File f : dirCorr.listFiles()) {
+                            if (f.isFile() && f.canRead() && f.getName().endsWith(".txt")) {
                                 fr = new FileReader(f);
 
-                                occorrenze_linea=0;
+                                occorrenze_linea = 0;
 
-                                while ((cread=fr.read())!=-1) {
-                                    if(cread=='\n'){
-                                        trovato=false;
-                                        occorrenze_linea=0;
-                                    }else if(cread == carattere && !trovato){
+                                while ((cread = fr.read()) != -1) {
+                                    if (cread == '\n') {
+                                        trovato = false;
+                                        occorrenze_linea = 0;
+                                    } else if (cread == carattere && !trovato) {
                                         occorrenze_linea++;
 
-                                        if(occorrenze_linea==occorrenze){
-                                            trovato=true;
+                                        if (occorrenze_linea == occorrenze) {
+                                            trovato = true;
                                             res++;
                                         }
-                                    } 
+                                    }
                                 }
                                 fr.close();
                             }
                         }
 
-                        //Scrivo il numero di linee trovate che soddisfano la condizione 
+                        // Scrivo il numero di linee trovate che soddisfano la condizione
                         outSock.writeInt(res);
-                    }else if(servizio.equalsIgnoreCase("B")){
-                        //Trasferisco tutti i file binari di un direttorio
+                    } else if (servizio.equalsIgnoreCase("B")) {
+                        // Trasferisco tutti i file binari di un direttorio
 
-                        //Leggo direttorio 
+                        // Leggo direttorio
                         dirName = inSock.readUTF();
 
                         dir = new File(dirName);
 
-                        if(!dir.exists() || !dir.canRead() || !dir.isDirectory()){
-                            //dir non esiste o non è valida
+                        if (!dir.exists() || !dir.canRead() || !dir.isDirectory()) {
+                            // dir non esiste o non è valida
                             outSock.writeBoolean(false);
                             continue;
                         }
 
-                        //dir esiste ed è valida
+                        // dir esiste ed è valida
                         outSock.writeBoolean(true);
 
-                        //Conto il numero di file binari presenti in dir
-                        nFiles=0;
-                        for(File f:dir.listFiles()){
-                            if(f.canRead() && f.isFile() && !f.getName().endsWith(".txt")){
+                        // Conto il numero di file binari presenti in dir
+                        nFiles = 0;
+                        for (File f : dir.listFiles()) {
+                            if (f.canRead() && f.isFile() && !f.getName().endsWith(".txt")) {
                                 nFiles++;
                             }
                         }
 
-                        //Invio numero file
+                        // Invio numero file
                         outSock.writeInt(nFiles);
 
-                        for(File f:dir.listFiles()){
-                            if(f.canRead() && f.isFile() && !f.getName().endsWith(".txt")){
-                                //Scrivo il nome del file
+                        for (File f : dir.listFiles()) {
+                            if (f.canRead() && f.isFile() && !f.getName().endsWith(".txt")) {
+                                // Scrivo il nome del file
                                 outSock.writeUTF(f.getName());
 
-                                //Apro stream del file
+                                // Apro stream del file
                                 fileStream = new FileInputStream(f);
 
                                 nByte = f.length();
 
-                                //Scrivo lunghezza file
+                                // Scrivo lunghezza file
                                 outSock.writeLong(nByte);
 
-                                //Invio file
-                                while (nByte>0) {
+                                // Invio file
+                                while (nByte > 0) {
                                     nread = fileStream.read(buffer);
-                                    outSock.write(buffer,0,nread);
+                                    outSock.write(buffer, 0, nread);
 
                                     nByte -= nread;
                                 }

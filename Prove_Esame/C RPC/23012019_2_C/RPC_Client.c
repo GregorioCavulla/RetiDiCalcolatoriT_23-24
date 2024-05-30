@@ -147,7 +147,6 @@ int main(int argc, char *argv[])
     } // endif
     ok = 0;
   }
-
   // DISTRUZIONE GESTORE DI TRASPORTO
   clnt_destroy(cl);
   printf("Client: termino...\n");

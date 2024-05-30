@@ -47,75 +47,75 @@ public class InviaFileClient {
             System.exit(1);
         }
 
-        String command,carattere,occ_String,dirName,fileName;
-        int occorrenze,res,numFile,nread,buffer_size = 4096;
+        String command, carattere, occ_String, dirName, fileName;
+        int occorrenze, res, numFile, nread, buffer_size = 4096;
         boolean esiste;
         long fileLength;
         FileOutputStream fileStream;
-        byte [] buffer = new byte[buffer_size];
+        byte[] buffer = new byte[buffer_size];
 
         try {
             System.out.print("Inserire (C:Conta occorrenze,B:Trasferisci file binari)");
-            while (( command =  stdIn.readLine()) != null ) {
+            while ((command = stdIn.readLine()) != null) {
                 outSock.writeUTF(command);
-    
-                if ( command.equals("C") ) {
-                    //Conta occorrenze
+
+                if (command.equals("C")) {
+                    // Conta occorrenze
 
                     System.out.print("Inserire carattere: ");
                     carattere = stdIn.readLine();
                     System.out.println("Inserire occorrenze: ");
                     occ_String = stdIn.readLine();
 
-                    try{
+                    try {
                         occorrenze = Integer.parseInt(occ_String);
-                    }catch(NumberFormatException e){
+                    } catch (NumberFormatException e) {
                         System.out.println("L'input non è un numero");
                         System.out.println("Inserire (C:Conta occorrenze,B:Trasferisci file binari)");
                         continue;
                     }
 
-                    //Scrivo carattere e occorrenze
+                    // Scrivo carattere e occorrenze
                     outSock.writeChar(carattere.charAt(0));
                     outSock.writeInt(occorrenze);
 
-                    //Ricevo caratteri trovati
+                    // Ricevo caratteri trovati
                     res = inSock.readInt();
 
                     System.out.println("Trovate " + res + " occorrenze del carattere " + carattere);
 
-                }  else if ( command.equals("B") ) {
+                } else if (command.equals("B")) {
                     System.out.print("Inserire direttorio: ");
                     dirName = stdIn.readLine();
-    
-                    //Invio nome direttorio
+
+                    // Invio nome direttorio
                     outSock.writeUTF(dirName);
-                    
-                    //Leggo se il direttorio esiste ed è valido
+
+                    // Leggo se il direttorio esiste ed è valido
                     esiste = inSock.readBoolean();
 
-                    if(esiste){
-                        //Ricevo numero file
+                    if (esiste) {
+                        // Ricevo numero file
                         numFile = inSock.readInt();
-                        for(int i=0;i<numFile;i++){
-                            //Leggo nome file
+                        for (int i = 0; i < numFile; i++) {
+                            // Leggo nome file
                             fileName = inSock.readUTF();
 
-                            //Leggo lunghezza file
+                            // Leggo lunghezza file
                             fileLength = inSock.readLong();
 
-                            //Scrivo byte
+                            // Scrivo byte
                             fileStream = new FileOutputStream(fileName);
 
                             while (fileLength > 0) {
-                                nread = inSock.read(buffer,0,fileLength > buffer_size ? buffer_size : (int)fileLength);
-                                fileStream.write(buffer,0,nread);
+                                nread = inSock.read(buffer, 0,
+                                        fileLength > buffer_size ? buffer_size : (int) fileLength);
+                                fileStream.write(buffer, 0, nread);
 
                                 fileLength -= nread;
                             }
 
                             fileStream.close();
-
 
                         }
                     } else {
@@ -132,7 +132,7 @@ public class InviaFileClient {
             System.out.println("Chiudo ed esco...");
             System.exit(2);
         }
-      
+
         socket.close();
 
     }
