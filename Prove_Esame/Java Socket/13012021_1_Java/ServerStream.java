@@ -45,7 +45,14 @@ public class ServerStream {
         } catch (Exception e) {
             System.err.println("Server: problemi nella creazione della server socket: " + e.getMessage());
             e.printStackTrace();
-            serverSocket.close();
+            if (serverSocket != null) {
+                try {
+                    serverSocket.close();
+                } catch (Exception ioe) {
+                    System.err.println("Server: problemi nella chiusura della server socket: " + ioe.getMessage());
+                    ioe.printStackTrace();
+                }
+            }
             System.exit(1);
         }
 

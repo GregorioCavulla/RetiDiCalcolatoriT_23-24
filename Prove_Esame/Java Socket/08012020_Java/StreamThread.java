@@ -94,7 +94,7 @@ public class StreamThread extends Thread {
 
                     // FINE
                 } else if (service == '2') {
-                    System.out.println("[DEBUG] eseguo servizio 1");
+                    System.out.println("[DEBUG] eseguo servizio 2");
                     // invio i file binari nel direttorio richiesto dal cliente
                     dirName = inSock.readUTF();
 

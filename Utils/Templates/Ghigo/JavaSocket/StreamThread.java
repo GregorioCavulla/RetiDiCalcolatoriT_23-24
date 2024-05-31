@@ -11,6 +11,10 @@ public class StreamThread extends Thread {
         this.dati = dati;
     }
 
+    public StreamThread(Socket socket) {
+        this.clientSocket = socket;
+    }
+
     @Override
     public void run() {
         System.out.println("[DEBUG] Attivazione figlio: " + Thread.currentThread().getName());
