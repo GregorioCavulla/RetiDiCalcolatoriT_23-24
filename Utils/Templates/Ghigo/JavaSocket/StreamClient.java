@@ -1,8 +1,6 @@
-package Stream;
-
-
 import java.io.*;
 import java.net.*;
+
 public class StreamClient {
     public static void main(String[] args) {
         InetAddress addr = null;
@@ -15,7 +13,7 @@ public class StreamClient {
         BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
 
         String buffer;
-     
+
         try {
             if (args.length == 2) {
                 addr = InetAddress.getByName(args[0]);
@@ -28,8 +26,7 @@ public class StreamClient {
                 System.out.println("[ERROR] java StreamClient serverAddr serverPort ");
                 System.exit(1);
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("[ERROR] Problemi, i seguenti: ");
             e.printStackTrace();
             System.out.println("java StreamClient serverAddr serverPort ");
@@ -47,7 +44,7 @@ public class StreamClient {
             System.exit(1);
 
         }
-        //CREAZIONE STREAM
+        // CREAZIONE STREAM
         try {
             inSock = new DataInputStream(socket.getInputStream());
             outSock = new DataOutputStream(socket.getOutputStream());
@@ -57,30 +54,29 @@ public class StreamClient {
             System.exit(1);
         }
 
-        //CICLO INTERAZIONE CLIENT
+        // CICLO INTERAZIONE CLIENT
 
         try {
-            System.out.println("Servizi: E(liminazione)\t T(rasfermento)\t ^D per terminare");
+            System.out.println("Servizi: 1: <operazione 1>, 2: <operazione 2> ^D per terminare");
 
             while ((buffer = stdIn.readLine()) != null) {
-                //operazione di Elimina
-                if (buffer.equals("E")) {
-                    outSock.writeChar('E');
 
-                    //risposta dal server
+                if (buffer.equals("1")) { // Servizio 1
+                    outSock.writeChar('1');
+
+                    // risposta dal server
                     inSock.readUTF();
 
+                } else if (buffer.equals("2")) { // Servizio 2
+                    outSock.writeChar('2');
 
-                } else if (buffer.equals("T")) {
-                    outSock.writeChar('T');
-
-                    //risposta dal server
+                    // risposta dal server
                     inSock.readUTF();
 
                 } else
                     System.out.println("Nessun metodo corrispondente");
 
-                System.out.println("Servizi: C(onteggio numero linee)\t T(rasfermento file binari)\t ^D per terminare");
+                System.out.println("Servizi: 1: <operazione 1>, 2: <operazione 2> ^D per terminare");
 
             }
 
@@ -91,7 +87,7 @@ public class StreamClient {
 
         // fine ciclo
 
-        //CHIUSURA SOCKET
+        // CHIUSURA SOCKET
         try {
             socket.shutdownOutput();
             socket.shutdownInput();
