@@ -7,6 +7,8 @@ import java.io.*;
 
 public class FileUtility {
 
+
+
     /**
      * 
     File.exists();
@@ -17,7 +19,6 @@ public class FileUtility {
     File.listFiles();
     File.getAbsolutePath()
      */
-
     /**
      * Nota: sorgente e destinazione devono essere correttamente aperti e chiusi
      * da chi invoca questa funzione.
