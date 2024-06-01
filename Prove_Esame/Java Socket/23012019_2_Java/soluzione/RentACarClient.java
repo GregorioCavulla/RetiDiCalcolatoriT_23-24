@@ -8,7 +8,7 @@ public class RentACarClient {
         int port = -1;
 
         BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
-        
+
         try {
             if (args.length == 2) {
                 addr = InetAddress.getByName(args[0]);
@@ -53,72 +53,73 @@ public class RentACarClient {
         String command, targa, fileName;
         boolean success;
         long fileLength;
-        
-        byte [] buffer = new byte[buffer_size];
+
+        byte[] buffer = new byte[buffer_size];
         int nread, numFile;
         FileOutputStream donwloadedImage;
 
         try {
             System.out.print("Inserire (E=EliminaPrenotazione,D=DownloadImmagini) : ");
-            while (( command =  stdIn.readLine()) != null ) {
+            while ((command = stdIn.readLine()) != null) {
                 outSock.writeUTF(command);
-    
-                if ( command.equals("E") ) {
+
+                if (command.equals("E")) {
                     // ELIMINA
                     System.out.print("Inserire Targa: ");
                     targa = stdIn.readLine();
-    
+
                     // INVIO TTARGA
                     outSock.writeUTF(targa);
                     // RICEZIONE RISULTATO
                     success = inSock.readBoolean();
-    
-                    if ( success ) {
+
+                    if (success) {
                         System.out.println("Prenotazione rimossa con successo");
                     } else {
                         System.out.println("Errore!, Prenotazione non rimossa");
                     }
-                }  else if ( command.equals("D") ) {
+                } else if (command.equals("D")) {
                     System.out.print("Inserire Targa: ");
                     targa = stdIn.readLine();
-    
+
                     // INVIO TTARGA
                     outSock.writeUTF(targa);
                     // RICEZIONE RISULTATO
                     success = inSock.readBoolean();
-                    
-                    if ( success ) {
+
+                    if (success) {
                         System.out.println("Cartella recuperata, inizio download...");
-    
-                        //RICEVO NUMERO FILE
+
+                        // RICEVO NUMERO FILE
                         numFile = inSock.readInt();
-                        for ( int i = 0; i < numFile; i++ ) {
+                        for (int i = 0; i < numFile; i++) {
                             // LEGGO NOME FILE
                             fileName = inSock.readUTF();
-        
+
                             // LEGGO LUNGHEZZA FILE
                             fileLength = inSock.readLong();
-            
-                            // SCRIVO BYTE SU FILE 
+
+                            // SCRIVO BYTE SU FILE
                             donwloadedImage = new FileOutputStream(fileName);
-        
-                            while ( fileLength > 0 ) {
-                                nread = inSock.read(buffer, 0, fileLength > buffer_size ? buffer_size : (int)fileLength);
+
+                            while (fileLength > 0) {
+                                nread = inSock.read(buffer, 0,
+                                        fileLength > buffer_size ? buffer_size : (int) fileLength);
                                 donwloadedImage.write(buffer, 0, nread);
-        
+
                                 fileLength -= nread;
                             }
-        
+
                             donwloadedImage.close();
                         }
-                        
+
                     } else {
                         System.out.println("Errore!, Cartella immagini non presente sul server");
                     }
                 }
                 System.out.print("Inserire (E=EliminaPrenotazione,D=DownloadImmagini) : ");
             }
-    
+
             System.out.print("\n^D(Unix)/^Z(Win)+invio per uscire, altrimenti immetti il nome della cartella: ");
 
         } catch (IOException ioe) {
@@ -128,7 +129,7 @@ public class RentACarClient {
             System.out.println("Chiudo ed esco...");
             System.exit(2);
         }
-      
+
         socket.close();
     }
 }

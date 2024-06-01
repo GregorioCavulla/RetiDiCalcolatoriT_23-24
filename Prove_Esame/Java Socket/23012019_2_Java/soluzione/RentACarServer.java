@@ -1,3 +1,4 @@
+
 /**
  * RentACarServer.java
  *  + eliminare una prenotazione
@@ -65,7 +66,8 @@ class RentACarServerThread extends Thread {
                             dest_stream.flush();
                             System.out.println("Byte trasferiti: " + cont);
                         }
-                        // l'eccezione dovrebbe scattare solo se ci aspettiamo un numero sbagliato di byte da leggere
+                        // l'eccezione dovrebbe scattare solo se ci aspettiamo un numero sbagliato di
+                        // byte da leggere
                         catch (EOFException e) {
                             System.out.println("Problemi, i seguenti: ");
                             e.printStackTrace();

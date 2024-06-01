@@ -4,20 +4,20 @@
 
 import java.io.*;
 import java.net.*;
- 
+
 class ServerThread extends Thread {
     private Socket clientSocket = null;
- 
+
     public ServerThread(Socket clientSocket) {
         this.clientSocket = clientSocket;
     }
- 
+
     public void run() {
         System.out.println("Attivazione figlio: " + Thread.currentThread().getName());
- 
+
         DataInputStream inSock;
         DataOutputStream outSock;
- 
+
         try {
             inSock = new DataInputStream(clientSocket.getInputStream());
             outSock = new DataOutputStream(clientSocket.getOutputStream());
@@ -29,127 +29,128 @@ class ServerThread extends Thread {
         try {
             try {
 
-                String servizio,parola,nomeFile,line,nuovaLinea,dirName;
+                String servizio, parola, nomeFile, line, nuovaLinea, dirName;
                 String[] parole;
-                File fileInput,fileOutput,dir;
-                int res,nFiles,nread;
+                File fileInput, fileOutput, dir;
+                int res, nFiles, nread;
                 BufferedReader br;
                 BufferedWriter bw;
-                long soglia,dimFile,nByte;
+                long soglia, dimFile, nByte;
                 FileInputStream fileStream;
-                byte [] buffer = new byte[4096];
- 
+                byte[] buffer = new byte[4096];
+
                 while ((servizio = inSock.readUTF()) != null) {
-                    if(servizio.equalsIgnoreCase("E")){
-                        //Eliminazione occorrenze di una parola in un file
- 
-                        //Leggo parola
+                    if (servizio.equalsIgnoreCase("E")) {
+                        // Eliminazione occorrenze di una parola in un file
+
+                        // Leggo parola
                         parola = inSock.readUTF();
                         System.out.println("Richiesta parola " + parola);
- 
-                        //Leggo nome file
+
+                        // Leggo nome file
                         nomeFile = inSock.readUTF();
                         System.out.println("Richiesto file " + nomeFile);
 
-                        //Leggo nel file
-                        res=0;
-                        try{
+                        // Leggo nel file
+                        res = 0;
+                        try {
                             fileInput = new File(nomeFile);
                             fileOutput = new File("temp.txt");
 
                             br = new BufferedReader(new FileReader(fileInput));
                             bw = new BufferedWriter(new FileWriter(fileOutput));
 
-                            while((line = br.readLine()) != null){
+                            while ((line = br.readLine()) != null) {
                                 parole = line.split("\\s+");
 
-                                for(String p:parole){
-                                    if(p.equals(parola)){
+                                for (String p : parole) {
+                                    if (p.equals(parola)) {
                                         res++;
                                     }
                                 }
 
-                                nuovaLinea = line.replaceAll(parola,"");
+                                nuovaLinea = line.replaceAll(parola, "");
                                 bw.write(nuovaLinea);
                                 bw.newLine();
                             }
 
                             br.close();
                             bw.close();
-                            
-                            if(fileInput.delete() && fileOutput.renameTo(fileInput)){
-                                System.out.println("Eliminate le occorrenze della parola " + parola + " nel file " + nomeFile);
-                            }else{
+
+                            if (fileInput.delete() && fileOutput.renameTo(fileInput)) {
+                                System.out.println(
+                                        "Eliminate le occorrenze della parola " + parola + " nel file " + nomeFile);
+                            } else {
                                 System.out.println("Errore nella modifica del file");
-                                res=-1;
+                                res = -1;
                                 br.close();
                                 bw.close();
                                 fileOutput.delete();
                             }
 
-                        }catch(IOException e){
+                        } catch (IOException e) {
                             e.printStackTrace();
                             res = -1;
                         }
 
-                        //Scrivo il numero di parole eliminate
+                        // Scrivo il numero di parole eliminate
                         outSock.writeInt(res);
-                    }else if(servizio.equalsIgnoreCase("T")){
-                        //Trasferisco i file con byte maggiori di una certa soglia
+                    } else if (servizio.equalsIgnoreCase("T")) {
+                        // Trasferisco i file con byte maggiori di una certa soglia
                         System.out.println("Richiesto il trasferimento di file");
- 
-                        //Leggo direttorio 
+
+                        // Leggo direttorio
                         dirName = inSock.readUTF();
 
-                        //Leggo soglia
+                        // Leggo soglia
                         soglia = inSock.readLong();
 
                         dir = new File(dirName);
- 
-                        if(!dir.exists() || !dir.canRead() || !dir.isDirectory()){
-                            //dir non esiste o non è valida
+
+                        if (!dir.exists() || !dir.canRead() || !dir.isDirectory()) {
+                            // dir non esiste o non è valida
                             outSock.writeBoolean(false);
                             continue;
                         }
- 
-                        //dir esiste ed è valida
+
+                        // dir esiste ed è valida
                         outSock.writeBoolean(true);
- 
-                        //Conto il numero di file con bute>soglia presenti in dir
-                        nFiles=0;
-                        for(File f:dir.listFiles()){
-                            if(f.canRead() && f.isFile()){
+
+                        // Conto il numero di file con bute>soglia presenti in dir
+                        nFiles = 0;
+                        for (File f : dir.listFiles()) {
+                            if (f.canRead() && f.isFile()) {
                                 dimFile = f.length();
-                                if(dimFile > soglia){
+                                if (dimFile > soglia) {
                                     nFiles++;
                                 }
                             }
                         }
- 
-                        //Invio numero file
+
+                        // Invio numero file
                         outSock.writeInt(nFiles);
- 
-                        for(File f:dir.listFiles()){
-                            if(f.canRead() && f.isFile() && (f.length()>soglia)){
-                                //Scrivo il nome del file
+
+                        for (File f : dir.listFiles()) {
+                            if (f.canRead() && f.isFile() && (f.length() > soglia)) {
+                                // Scrivo il nome del file
                                 outSock.writeUTF(f.getName());
- 
-                                //Apro stream del file
+
+                                // Apro stream del file
                                 fileStream = new FileInputStream(f);
- 
+
                                 nByte = f.length();
- 
-                                //Scrivo lunghezza file
+
+                                // Scrivo lunghezza file
                                 outSock.writeLong(nByte);
- 
-                                //Invio file
-                                while (nByte>0) {
+
+                                // Invio file
+                                while (nByte > 0) {
                                     nread = fileStream.read(buffer);
-                                    outSock.write(buffer,0,nread);
- 
+                                    outSock.write(buffer, 0, nread);
+
                                     nByte -= nread;
                                 }
- 
+
                                 fileStream.close();
                             }
                         }
@@ -179,14 +180,14 @@ class ServerThread extends Thread {
             System.exit(3);
         }
     }
- 
+
 }// thread
- 
+
 public class Server {
- 
+
     public static void main(String[] args) throws IOException {
         int port = -1;
- 
+
         try {
             if (args.length == 1) {
                 port = Integer.parseInt(args[0]);
@@ -205,10 +206,10 @@ public class Server {
             System.out.println("Usage: java Server port");
             System.exit(1);
         }
- 
+
         ServerSocket serverSocket = null;
         Socket clientSocket = null;
- 
+
         try {
             serverSocket = new ServerSocket(port);
             serverSocket.setReuseAddress(true);
@@ -220,11 +221,11 @@ public class Server {
             serverSocket.close();
             System.exit(1);
         }
- 
+
         try {
             while (true) {
                 System.out.println("Server: in attesa di richieste...\n");
- 
+
                 try {
                     clientSocket = serverSocket.accept(); // bloccante!!!
                     System.out.println("Server: connessione accettata: " + clientSocket);
@@ -233,7 +234,7 @@ public class Server {
                     e.printStackTrace();
                     continue;
                 }
- 
+
                 try {
                     new ServerThread(clientSocket).start();
                 } catch (Exception e) {

@@ -3,7 +3,7 @@ public class Prenotazione {
     private String patente;
     private String tipoVeicolo;
     private String immagini;
-    
+
     public Prenotazione(String targa, String patente, String tipoVeicolo, String immagini) {
         this.targa = targa;
         this.patente = patente;
