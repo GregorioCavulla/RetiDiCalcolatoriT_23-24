@@ -17,10 +17,10 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#define BUF_LEN 256
 #define QUEUE_TCP 10240
-#define LINE_LENGTH 128
-#define WORD_LENGTH 128
+#define LINE_LENGTH 256
+#define WORD_LENGTH 64
+#define MAX_FILES 255
 
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
@@ -30,19 +30,19 @@ void gestore(int signo)
     printf("esecuzione gestore di SIGCHLD \n");
     wait(&stato);
 }
-typedef struct
-{
-    char dato1[WORD_LENGTH];
-    char dato2[WORD_LENGTH];
-} ReqUDP;
+// typedef struct
+// {
+//     char dato1[WORD_LENGTH];
+//     char dato2[WORD_LENGTH];
+// } ReqUDP;
 
 int main(int argc, char **argv)
 {
     int socket_udp, socket_tcp, socket_conn, port, nfds, nread, serv_len;
     struct hostent *hostUDP, *hostTCP;
     struct sockaddr_in cliAddr, servAddr;
-    char buf[BUF_LEN]; ////da modificare
-    ReqUDP req;        // da modificare
+    char buf[LINE_LENGTH];
+    char udpReq[LINE_LENGTH];
     const int on = 1;
     fd_set rset;
     // TODO init data
@@ -161,7 +161,7 @@ int main(int argc, char **argv)
             printf("[DEBUG] ricevuta una richiesta di UDP \n");
             serv_len = sizeof(struct sockaddr_in);
             // da modificare
-            if (recvfrom(socket_udp, &req, sizeof(req), 0, (struct sockaddr *)&cliAddr, &serv_len))
+            if (recvfrom(socket_udp, &udpReq, sizeof(udpReq), 0, (struct sockaddr *)&cliAddr, &serv_len))
             {
                 printf("recvfrom");
                 continue;
@@ -179,7 +179,77 @@ int main(int argc, char **argv)
                 printf("Operazione richiesta da: %s %i\n", hostUDP->h_name, (unsigned)ntohs(cliAddr.sin_port));
             }
             /* CODICE DEL SERVER*/
+
             int esito = 0;
+
+            int file_fd, tempFile_fd;
+            char tempFile[WORD_LENGTH], charRead;
+
+            file_fd = open(udpReq, O_RDONLY);
+            strcpy(tempFile, udpReq);
+            strcat(tempFile, "_temp");
+            if ((tempFile_fd = open(tempFile, O_WRONLY | O_CREAT, 0777)) < 0)
+            {
+                perror("Errore apertura file temp");
+                esito = -1;
+            }
+
+            if (file_fd < 0)
+            {
+                perror("open");
+                esito = -1;
+                if (sendto(socket_udp, &esito, sizeof(int), 0, (struct sockaddr *)&cliAddr, serv_len) < 0)
+                {
+                    perror("sendto");
+                    continue;
+                }
+                continue;
+            }
+
+            esito = 0;
+
+            while ((nread = read(file_fd, &charRead, sizeof(char)) < 0))
+            {
+                if (nread < 0)
+                {
+                    perror("read");
+                    esito = -1;
+                    close(file_fd);
+                    close(tempFile_fd);
+                    if (sendto(socket_udp, &esito, sizeof(int), 0, (struct socketaddr *)&cliAddr, serv_len) < 0)
+                    {
+                        perror("sendto");
+                        continue;
+                    }
+                    continue;
+                }
+
+                if (charRead != 'A' && charRead != 'E' && charRead != 'I' && charRead != 'O' && charRead != 'U' && charRead != 'a' && charRead != 'e' && charRead != 'i' && charRead != 'o' && charRead != 'u')
+                {
+                    if (write(tempFile_fd, &charRead, sizeof(char)) < 0)
+                    {
+                        perror("write");
+                        esito = -1;
+                        close(file_fd);
+                        close(tempFile_fd);
+                        if (sendto(socket_udp, &esito, sizeof(int), 0, (struct socketaddr *)&cliAddr, serv_len) < 0)
+                        {
+                            perror("sendto");
+                            continue;
+                        }
+                        continue;
+                    }
+                }
+                else
+                {
+                    esito++;
+                }
+
+                close(file_fd);
+                close(tempFile_fd);
+
+                rename(tempFile, udpReq);
+            }
 
             // eisto=htonl(num);
             // mando in dietro il esito
@@ -224,8 +294,90 @@ int main(int argc, char **argv)
                 /* server code */
                 int esito;
                 int dato;
-                while ((nread = read(socket_conn, &dato, sizeof(dato))) > 0)
+
+                char dirName[WORD_LENGTH], files[MAX_FILES][WORD_LENGTH], fileName[WORD_LENGTH], path[WORD_LENGTH * 2], buff[WORD_LENGTH];
+                char risp, c;
+                DIR *dir;
+                struct dirent *file;
+                int dir_name_length, file_count, consonanti, vocali, ind, file_name_length, i, fd, file_length;
+
+                while ((nread = read(socket_conn, &dirName, sizeof(dir))) > 0)
                 {
+                    if ((dir = opendir(dirName)) != NULL)
+                    {
+                        risp = "S";
+                        write(socket_tcp, &risp, sizeof(char));
+                        file_count = 0;
+                        i = 0;
+                        while ((file = readdir(dir)) != NULL)
+                        {
+                            strcat(file->d_name, "\0");
+                            printf("%s\n", file->d_name);
+                            ind = 0;
+                            vocali = 0;
+                            consonanti = 0;
+
+                            while ((c = file->d_name[ind]) != '\0')
+                            {
+                                if (c != 'A' && c != 'a' && c != 'E' && c != 'e' && c != 'I' && c != 'i' && c != 'O' && c != 'o' && c != 'U' && c != 'u')
+                                {
+                                    consonanti++;
+                                }
+                                else
+                                {
+                                    vocali++;
+                                }
+                                ind++;
+
+                                if (consonanti > 0 && vocali > 0)
+                                {
+                                    strcpy(files[i++], file->d_name);
+                                    file_count++;
+                                    break;
+                                }
+                            }
+
+                            // Scrivo path
+                            strcpy(path, dirName);
+                            strcat(path, "/");
+                            strcat(path, fileName);
+
+                            fd = open(path, O_RDONLY);
+
+                            if (fd < 0)
+                            {
+                                perror("open");
+                                continue;
+                            }
+
+                            // invio il file
+
+                            while ((nread = read(fd, buff, sizeof(buff))) > 0)
+                            {
+                                if (nread < 0)
+                                {
+                                    perror("read");
+                                    close(fd);
+                                    close(socket_tcp);
+                                    exit(6);
+                                }
+                                if (write(socket_tcp, buff, nread) < 0)
+                                {
+                                    perror("write");
+                                    close(fd);
+                                    close(socket_tcp);
+                                    exit(6);
+                                }
+                            }
+
+                            close(fd);
+                        }
+                    }
+                    else
+                    {
+                        risp = 'N';
+                        write(socket_tcp, &risp, sizeof(char));
+                    }
                 }
                 write(socket_conn, &esito, sizeof(esito));
                 // write(socket_conn, &zero, 1); invio di un zero binario

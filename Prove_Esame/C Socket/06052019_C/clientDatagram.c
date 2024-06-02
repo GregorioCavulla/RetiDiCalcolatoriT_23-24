@@ -10,18 +10,18 @@
 #define WORD_LENGTH 64
 #define LINE_LENGHT 256
 
-typedef struct
-{
-    char fileName[WORD_LENGTH];
-    char parola[WORD_LENGTH];
-} ReqUDP;
+// typedef struct
+// {
+//     char fileName[WORD_LENGTH];
+//    char parola[WORD_LENGTH];
+// } fileNameUDP;
 
 int main(int argc, char const *argv[])
 {
     struct hostent *host;
     struct sockaddr_in clientAddr, servAddr;
     int port, sd, len, result, nread;
-    ReqUDP req;
+    char fileName[LINE_LENGHT];
 
     /* CONTROLLO ARGOMENTI ---------------------------------- */
     if (argc != 3)
@@ -89,17 +89,17 @@ int main(int argc, char const *argv[])
     printf("[DEBUG] %s: bind socket ok, alla porta %i\n", argv[0], clientAddr.sin_port);
 
     // CODICE DEL CLIENTE
-    printf("Inserire  ---------- , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
+    printf("Inserire il nome del file , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
 
     // CICLO INTERAZIONE
     int ris;
-    while (scanf("%s", req.fileName) == 1)
+    // while (scanf("%s", fileName.fileName) ==1)
+    while (gets(fileName))
     {
 
-        //
         // invio richiesta una struttura di 2 dati
         len = sizeof(servAddr);
-        if (sendto(sd, &req, sizeof(req), 0, (struct sockaddr *)&servAddr, len) < 0)
+        if (sendto(sd, &fileName, sizeof(fileName), 0, (struct sockaddr *)&servAddr, len) < 0)
         {
             perror("sendto");
             // se questo invio fallisce il client torna all'inzio del ciclo
@@ -122,7 +122,7 @@ int main(int argc, char const *argv[])
         {
             printf("Cliente: risultato ottenuto = %d\n", ris);
         }
-        printf("Inserire  ---------- , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
+        printf("Inserire  il nome del file , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
     }
 
     // CICLO INTERAZIONE

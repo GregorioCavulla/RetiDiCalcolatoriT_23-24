@@ -14,20 +14,24 @@
 
 #define LINE_LENGTH 256
 
-int main(int argc, char *argv[]) {
-    int                port, nread, sd, nwrite;
-    char               directoryName[LINE_LENGTH], buffChar;
-    struct hostent    *host;
+int main(int argc, char *argv[])
+{
+    int port, nread, sd, nwrite;
+    char directoryName[LINE_LENGTH], buffChar;
+    struct hostent *host;
     struct sockaddr_in servaddr;
 
     /* CONTROLLO ARGOMENTI ---------------------------------- */
-    if (argc != 3) {
+    if (argc != 3)
+    {
         printf("Usage: %s serverAddress serverPort\n", argv[0]);
         exit(1);
     }
     nread = 0;
-    while (argv[2][nread] != '\0') {
-        if ((argv[2][nread] < '0') || (argv[2][nread] > '9')) {
+    while (argv[2][nread] != '\0')
+    {
+        if ((argv[2][nread] < '0') || (argv[2][nread] > '9'))
+        {
             printf("Second argument must be an integer!\n");
             printf("Usage: %s serverAddress serverPort\n", argv[0]);
             exit(2);
@@ -35,7 +39,8 @@ int main(int argc, char *argv[]) {
         nread++;
     }
     port = atoi(argv[2]);
-    if (port < 1024 || port > 65535) {
+    if (port < 1024 || port > 65535)
+    {
         printf("Port must be in the range [1024, 65535]\n");
         exit(2);
     }
@@ -43,24 +48,27 @@ int main(int argc, char *argv[]) {
     /* INIZIALIZZAZIONE INDIRIZZO SERVER -------------------------- */
     memset((char *)&servaddr, 0, sizeof(struct sockaddr_in));
     servaddr.sin_family = AF_INET;
-    host                = gethostbyname(argv[1]);
-    if (host == NULL) {
+    host = gethostbyname(argv[1]);
+    if (host == NULL)
+    {
         printf("Error while resolving %s to IP address\n", argv[1]);
         exit(1);
     }
     servaddr.sin_addr.s_addr = ((struct in_addr *)(host->h_addr))->s_addr;
-    servaddr.sin_port        = htons(port);
+    servaddr.sin_port = htons(port);
 
     /* CREAZIONE SOCKET ------------------------------------ */
     sd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sd < 0) {
+    if (sd < 0)
+    {
         perror("Open socket: ");
         exit(3);
     }
     printf("Client: created socket sd=%d\n", sd);
 
     /* Operazione di BIND implicita nella connect */
-    if (connect(sd, (struct sockaddr *)&servaddr, sizeof(struct sockaddr_in)) < 0) {
+    if (connect(sd, (struct sockaddr *)&servaddr, sizeof(struct sockaddr_in)) < 0)
+    {
         perror("connect");
         exit(3);
     }
@@ -69,24 +77,34 @@ int main(int argc, char *argv[]) {
     /* CORPO DEL CLIENT:
      ciclo di accettazione di richieste da utente ------- */
     printf("Inserire nome del direttorio, EOF per terminare: ");
-    while (gets(directoryName)) {
+    while (gets(directoryName))
+    {
         printf("Invio il nome del direttorio: %s\n", directoryName);
         nwrite = write(sd, directoryName, strlen(directoryName));
 
         // Lettura risposta dal server
         read(sd, &buffChar, sizeof(char));
-        if (buffChar == 'S') {
+        if (buffChar == 'S')
+        {
             printf("Ricevo e stampo i file nel direttorio remoto:\n");
-            while ((nread = read(sd, &buffChar, sizeof(char))) > 0) {
-                if (buffChar == '\1') {
+            while ((nread = read(sd, &buffChar, sizeof(char))) > 0)
+            {
+                if (buffChar == '\1')
+                {
                     break;
-                } else if (buffChar == '\0') {
+                }
+                else if (buffChar == '\0')
+                {
                     printf("\n");
-                } else {
+                }
+                else
+                {
                     write(1, &buffChar, sizeof(char));
                 }
             }
-        } else {
+        }
+        else
+        {
             printf("directory non presente sul server\n");
         }
         printf("Nome del direttorio, EOF per terminare: ");

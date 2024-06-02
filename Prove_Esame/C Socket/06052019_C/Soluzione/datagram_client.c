@@ -15,20 +15,24 @@
 #define LINE_LENGTH 256
 #define WORD_LENGTH 64
 
-int main(int argc, char **argv) {
-    struct hostent    *host;
+int main(int argc, char **argv)
+{
+    struct hostent *host;
     struct sockaddr_in clientaddr, servaddr;
-    int                port, nread, sd, ris, len = 0;
-    char               nomeFile[LINE_LENGTH], parola[LINE_LENGTH];
+    int port, nread, sd, ris, len = 0;
+    char nomeFile[LINE_LENGTH], parola[LINE_LENGTH];
 
     /* CONTROLLO ARGOMENTI ---------------------------------- */
-    if (argc != 3) {
+    if (argc != 3)
+    {
         printf("Usage: %s serverAddress serverPort\n", argv[0]);
         exit(1);
     }
     nread = 0;
-    while (argv[2][nread] != '\0') {
-        if ((argv[2][nread] < '0') || (argv[2][nread] > '9')) {
+    while (argv[2][nread] != '\0')
+    {
+        if ((argv[2][nread] < '0') || (argv[2][nread] > '9'))
+        {
             printf("Second argument must be an integer!\n");
             printf("Usage: %s serverAddress serverPort\n", argv[0]);
             exit(2);
@@ -36,39 +40,45 @@ int main(int argc, char **argv) {
         nread++;
     }
     port = atoi(argv[2]);
-    if (port < 1024 || port > 65535) {
+    if (port < 1024 || port > 65535)
+    {
         printf("Port must be in the range [1024, 65535]\n");
         exit(2);
     }
 
     /* INIZIALIZZAZIONE INDIRIZZO CLIENT -------------------------- */
     memset((char *)&clientaddr, 0, sizeof(struct sockaddr_in));
-    clientaddr.sin_family      = AF_INET;
+    clientaddr.sin_family = AF_INET;
     clientaddr.sin_addr.s_addr = INADDR_ANY;
-    clientaddr.sin_port        = 0;
+    clientaddr.sin_port = 0;
 
     /* INIZIALIZZAZIONE INDIRIZZO SERVER -------------------------- */
     memset((char *)&servaddr, 0, sizeof(struct sockaddr_in));
     servaddr.sin_family = AF_INET;
-    host                = gethostbyname(argv[1]);
-    if (host == NULL) {
+    host = gethostbyname(argv[1]);
+    if (host == NULL)
+    {
         printf("Error while resolving %s to IP address\n", argv[1]);
         exit(2);
-    } else {
+    }
+    else
+    {
         servaddr.sin_addr.s_addr = ((struct in_addr *)(host->h_addr))->s_addr;
-        servaddr.sin_port        = htons(port);
+        servaddr.sin_port = htons(port);
     }
 
     /* CREAZIONE SOCKET ---------------------------------- */
-    sd = socket(AF_INET, SOC* datagram, 0);
-    if (sd < 0) {
+    sd = socket(AF_INET, SOC * datagram, 0);
+    if (sd < 0)
+    {
         perror("Open socket: ");
         exit(3);
     }
     printf("Client: created socket sd=%d\n", sd);
 
     /* BIND SOCKET  -------------------------------------- */
-    if (bind(sd, (struct sockaddr *)&clientaddr, sizeof(clientaddr)) < 0) {
+    if (bind(sd, (struct sockaddr *)&clientaddr, sizeof(clientaddr)) < 0)
+    {
         perror("bind socket ");
         exit(1);
     }
@@ -78,12 +88,14 @@ int main(int argc, char **argv) {
      ciclo di accettazione di richieste da utente ------- */
 
     printf("Dammi il nome di file, EOF per terminare: ");
-    while (gets(nomeFile)) {
-        printf("Invio richiesta di eliminazione vocali nel file %s\n",nomeFile);
+    while (gets(nomeFile))
+    {
+        printf("Invio richiesta di eliminazione vocali nel file %s\n", nomeFile);
 
         /* invio nome file */
         len = sizeof(servaddr);
-        if (sendto(sd, &nomeFile, sizeof(nomeFile), 0, (struct sockaddr *)&servaddr, len) < 0) {
+        if (sendto(sd, &nomeFile, sizeof(nomeFile), 0, (struct sockaddr *)&servaddr, len) < 0)
+        {
             perror("sendto");
             // se questo invio fallisce il client torna all'inzio del ciclo
             printf("Dammi il nome di file, EOF per terminare: ");
@@ -91,16 +103,20 @@ int main(int argc, char **argv) {
         }
 
         /* ricezione del risultato */
-        if (recvfrom(sd, &ris, sizeof(ris), 0, (struct sockaddr *)&servaddr, &len) < 0) {
+        if (recvfrom(sd, &ris, sizeof(ris), 0, (struct sockaddr *)&servaddr, &len) < 0)
+        {
             perror("Error in recvfrom: ");
             // se questo invio fallisce il client torna all'inzio del ciclo
             printf("Dammi il nome di file, EOF per terminare: ");
             continue;
         }
 
-        if (ris < 0) {
+        if (ris < 0)
+        {
             printf("Errore: file inesistente sul server o errore in apertura\n");
-        } else {
+        }
+        else
+        {
             printf("Eliminate %d vocali\n", ris);
         }
         printf("Dammi il nome di file, EOF per terminare: ");
