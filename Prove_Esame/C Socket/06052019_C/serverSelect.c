@@ -172,7 +172,7 @@ int main(int argc, char **argv)
             hostUDP = gethostbyaddr((char *)&cliAddr.sin_addr, sizeof(cliAddr.sin_addr), AF_INET);
             if (hostUDP == NULL)
             {
-                prinf("no info client host \n");
+                printf("no info client host \n");
             }
             else
             {

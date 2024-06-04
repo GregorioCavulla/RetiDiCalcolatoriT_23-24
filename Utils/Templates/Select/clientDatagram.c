@@ -7,10 +7,11 @@
 #include <netdb.h>
 #include <string.h>
 
-#define WORD_LENGTH 64
-#define LINE_LENGHT 256
+#define WORD_LENGTH 64  // lunghezza massima di una parola
+#define MAX_INPUT 128   // lunghezza massima di un input
+#define LINE_LENGTH 256 // lunghezza massima di una linea
 
-typedef struct
+typedef struct /*da modificare in base alle necessita */ // struttura per la richiesta UDP al server
 {
     char fileName[WORD_LENGTH];
     char parola[WORD_LENGTH];
@@ -18,10 +19,10 @@ typedef struct
 
 int main(int argc, char const *argv[])
 {
-    struct hostent *host;
-    struct sockaddr_in clientAddr, servAddr;
-    int port, sd, len, result, nread;
-    ReqUDP req;
+    struct hostent *host;                                 // struttura per la gestione degli host, contiene informazioni come l'indirizzo IP dell'host e il suo nome
+    struct sockaddr_in clientAddr, servAddr;              // struttura per la gestione degli indirizzi, contiene informazioni come l'indirizzo IP e la porta, sia del client che del server
+    int port, sd, len, result, nread;                     // variabili per la gestione della porta, del socket, della lunghezza dell'indirizzo, del risultato e del numero di caratteri letti
+    ReqUDP req; /*da modificare in base alle necessita */ // struttura per la richiesta UDP al server
 
     /* CONTROLLO ARGOMENTI ---------------------------------- */
     if (argc != 3)
@@ -52,8 +53,9 @@ int main(int argc, char const *argv[])
         }
         nread++;
     }
-    port = atoi(argv[2]);
-    // Verifico port
+    port = atoi(argv[2]); // converto la porta in intero
+
+    // Verifico che la porta sia corretta, e nella giusta fascia
     if (port < 1024 || port > 65535)
     {
         printf("%s = porta scorretta...\n", argv[2]);
@@ -67,12 +69,12 @@ int main(int argc, char const *argv[])
     }
     else
     {
-        servAddr.sin_addr.s_addr = ((struct in_addr *)(host->h_addr))->s_addr;
-        servAddr.sin_port = htons(port);
+        servAddr.sin_addr.s_addr = ((struct in_addr *)(host->h_addr))->s_addr; // assegno l'indirizzo IP del server all'indirizzo del server
+        servAddr.sin_port = htons(port);                                       // assegno la porta del server alla porta del server
     }
 
     /* CREAZIONE SOCKET ---------------------------------- */
-    sd = socket(AF_INET, SOCK_DGRAM, 0);
+    sd = socket(AF_INET, SOCK_DGRAM, 0); // creo la socket
     if (sd < 0)
     {
         perror("[ERR] apertura socket");
@@ -93,21 +95,21 @@ int main(int argc, char const *argv[])
 
     // CICLO INTERAZIONE
     int ris;
-    while (scanf("%s", req.fileName) == 1)
+    while (gets(req.fileName)) // dato da input, usato per la richiesta al server
     {
-
-        //
         // invio richiesta una struttura di 2 dati
         len = sizeof(servAddr);
-        if (sendto(sd, &req, sizeof(req), 0, (struct sockaddr *)&servAddr, len) < 0)
+
+        if (sendto(sd, &req, sizeof(req), 0, (struct sockaddr *)&servAddr, len) < 0) // invio la richiesta al server
         {
             perror("sendto");
             // se questo invio fallisce il client torna all'inzio del ciclo
             printf("Dammi il nome di file, EOF per terminare: ");
             continue;
         }
+
         /* ricezione del risultato */
-        if (recvfrom(sd, &ris, sizeof(ris), 0, (struct sockaddr *)&servAddr, &len) < 0)
+        if (recvfrom(sd, &ris, sizeof(ris), 0, (struct sockaddr *)&servAddr, &len) < 0) // ricevo il risultato dal server
         {
             perror("recvfrom");
             // se questo invio fallisce il client torna all'inzio del ciclo

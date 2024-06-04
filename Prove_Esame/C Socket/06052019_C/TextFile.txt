@@ -1,0 +1,10 @@
+) linea di caratteri alfabetici:
+- abcdefghijklmnopqrstuvwxyz
+) linea di caratteri alfabetici con spazi:
+- a b c d e f g h i j k l m n o p q r s t u v w x y z
+) linea di numeri:
+- 
+) linea di numeri con spazi:
+-          
+) linea con caratteri speciali:
+- a,,b,,c,,d,,e,,f,,g,,h,,i,,j,;
