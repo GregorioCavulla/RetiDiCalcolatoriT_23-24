@@ -180,6 +180,7 @@ int main(int argc, char **argv)
 
             /* Stampo a video le informazioni sul client */
             hostUdp = gethostbyaddr((char *)&cliaddr.sin_addr, sizeof(cliaddr.sin_addr), AF_INET);
+
             if (hostUdp == NULL)
             {
                 printf("Operazione richiesta da: %s\n", inet_ntoa(cliaddr.sin_addr));

@@ -42,7 +42,7 @@ int main(int argc, char **argv)
     struct hostent *hostUDP, *hostTCP;
     struct sockaddr_in cliAddr, servAddr;
     char buf[LINE_LENGTH];
-    char udpReq[LINE_LENGTH];
+    char udpFileName[LINE_LENGTH];
     const int on = 1;
     fd_set rset;
     // TODO init data
@@ -161,15 +161,16 @@ int main(int argc, char **argv)
             printf("[DEBUG] ricevuta una richiesta di UDP \n");
             serv_len = sizeof(struct sockaddr_in);
             // da modificare
-            if (recvfrom(socket_udp, &udpReq, sizeof(udpReq), 0, (struct sockaddr *)&cliAddr, &serv_len))
+            if (recvfrom(socket_udp, &udpFileName, sizeof(udpFileName), 0, (struct sockaddr *)&cliAddr, &serv_len) < 0)
             {
-                printf("recvfrom");
+                perror("recvfrom");
                 continue;
             }
 
-            printf("[DEBUG] operazione "); //
+            printf("[DEBUG] operazione datagram "); //
 
             hostUDP = gethostbyaddr((char *)&cliAddr.sin_addr, sizeof(cliAddr.sin_addr), AF_INET);
+
             if (hostUDP == NULL)
             {
                 printf("no info client host \n");
@@ -185,14 +186,17 @@ int main(int argc, char **argv)
             int file_fd, tempFile_fd;
             char tempFile[WORD_LENGTH], charRead;
 
-            file_fd = open(udpReq, O_RDONLY);
-            strcpy(tempFile, udpReq);
-            strcat(tempFile, "_temp");
+            file_fd = open(udpFileName, O_RDONLY);
+            strcpy(tempFile, udpFileName);
+            strcat(tempFile, "_temp.txt");
+
             if ((tempFile_fd = open(tempFile, O_WRONLY | O_CREAT, 0777)) < 0)
             {
                 perror("Errore apertura file temp");
                 esito = -1;
             }
+
+            printf("[DEBUG] file aperto %s\n", tempFile);
 
             if (file_fd < 0)
             {
@@ -208,7 +212,7 @@ int main(int argc, char **argv)
 
             esito = 0;
 
-            while ((nread = read(file_fd, &charRead, sizeof(char)) < 0))
+            while ((nread = read(file_fd, &charRead, sizeof(char))) != 0)
             {
                 if (nread < 0)
                 {
@@ -216,13 +220,15 @@ int main(int argc, char **argv)
                     esito = -1;
                     close(file_fd);
                     close(tempFile_fd);
-                    if (sendto(socket_udp, &esito, sizeof(int), 0, (struct socketaddr *)&cliAddr, serv_len) < 0)
+                    if (sendto(socket_udp, &esito, sizeof(int), 0, (const struct sockaddr *)&cliAddr, serv_len) < 0)
                     {
                         perror("sendto");
                         continue;
                     }
                     continue;
                 }
+
+                printf("\n sono qui \n");
 
                 if (charRead != 'A' && charRead != 'E' && charRead != 'I' && charRead != 'O' && charRead != 'U' && charRead != 'a' && charRead != 'e' && charRead != 'i' && charRead != 'o' && charRead != 'u')
                 {
@@ -232,7 +238,7 @@ int main(int argc, char **argv)
                         esito = -1;
                         close(file_fd);
                         close(tempFile_fd);
-                        if (sendto(socket_udp, &esito, sizeof(int), 0, (struct socketaddr *)&cliAddr, serv_len) < 0)
+                        if (sendto(socket_udp, &esito, sizeof(int), 0, (const struct sockaddr *)&cliAddr, serv_len) < 0)
                         {
                             perror("sendto");
                             continue;
@@ -244,18 +250,19 @@ int main(int argc, char **argv)
                 {
                     esito++;
                 }
-
-                close(file_fd);
-                close(tempFile_fd);
-
-                rename(tempFile, udpReq);
             }
 
+            close(file_fd);
+            close(tempFile_fd);
+
+            rename(tempFile, udpFileName);
+
             // eisto=htonl(num);
-            // mando in dietro il esito
-            if (sendto(socket_udp, esito, sizeof(esito), 0, (struct sockaddr *)&cliAddr, serv_len))
+
+            // mando in dietro l esito
+            if (sendto(socket_udp, &esito, sizeof(esito), 0, (struct sockaddr *)&cliAddr, serv_len))
             {
-                printf("sendto");
+                perror("sendto");
                 continue;
             }
             printf("[DEBUG] ho mandato l'esito al client\n ");
@@ -305,7 +312,7 @@ int main(int argc, char **argv)
                 {
                     if ((dir = opendir(dirName)) != NULL)
                     {
-                        risp = "S";
+                        risp = 'S';
                         write(socket_tcp, &risp, sizeof(char));
                         file_count = 0;
                         i = 0;
