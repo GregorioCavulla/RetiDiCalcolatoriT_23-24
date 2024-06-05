@@ -11,7 +11,25 @@
 #define MAX_INPUT 128   // lunghezza massima di un input
 #define LINE_LENGTH 256 // lunghezza massima di una linea
 
-typedef struct /*da modificare in base alle necessita */ // struttura per la richiesta UDP al server
+typedef struct /*da modificare in base alle necessita*/ // struttura per la ricezione di una richiesta UDP
+{
+    char Identificatore[5];
+    Data data;
+    char dataString[WORD_LENGTH];
+    int giorni;
+    char modello[WORD_LENGTH];
+    float costo_giornaliero;
+    char nome_file_foto[WORD_LENGTH];
+
+} Noleggio;
+
+typedef struct
+{
+    int giorno;
+    int mese;
+    int anno;
+} Data;
+typedef struct
 {
     char fileName[WORD_LENGTH];
     char parola[WORD_LENGTH];
@@ -19,10 +37,10 @@ typedef struct /*da modificare in base alle necessita */ // struttura per la ric
 
 int main(int argc, char const *argv[])
 {
-    struct hostent *host;                                 // struttura per la gestione degli host, contiene informazioni come l'indirizzo IP dell'host e il suo nome
-    struct sockaddr_in clientAddr, servAddr;              // struttura per la gestione degli indirizzi, contiene informazioni come l'indirizzo IP e la porta, sia del client che del server
-    int port, sd, len, result, nread;                     // variabili per la gestione della porta, del socket, della lunghezza dell'indirizzo, del risultato e del numero di caratteri letti
-    ReqUDP req; /*da modificare in base alle necessita */ // struttura per la richiesta UDP al server
+    struct hostent *host;
+    struct sockaddr_in clientAddr, servAddr;
+    int port, sd, len, result, nread;
+    ReqUDP req;
 
     /* CONTROLLO ARGOMENTI ---------------------------------- */
     if (argc != 3)
@@ -53,9 +71,8 @@ int main(int argc, char const *argv[])
         }
         nread++;
     }
-    port = atoi(argv[2]); // converto la porta in intero
-
-    // Verifico che la porta sia corretta, e nella giusta fascia
+    port = atoi(argv[2]);
+    // Verifico port
     if (port < 1024 || port > 65535)
     {
         printf("%s = porta scorretta...\n", argv[2]);
@@ -69,12 +86,12 @@ int main(int argc, char const *argv[])
     }
     else
     {
-        servAddr.sin_addr.s_addr = ((struct in_addr *)(host->h_addr))->s_addr; // assegno l'indirizzo IP del server all'indirizzo del server
-        servAddr.sin_port = htons(port);                                       // assegno la porta del server alla porta del server
+        servAddr.sin_addr.s_addr = ((struct in_addr *)(host->h_addr))->s_addr;
+        servAddr.sin_port = htons(port);
     }
 
     /* CREAZIONE SOCKET ---------------------------------- */
-    sd = socket(AF_INET, SOCK_DGRAM, 0); // creo la socket
+    sd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sd < 0)
     {
         perror("[ERR] apertura socket");
@@ -95,21 +112,21 @@ int main(int argc, char const *argv[])
 
     // CICLO INTERAZIONE
     int ris;
-    while (gets(req.fileName)) // dato da input, usato per la richiesta al server
+    while (scanf("%s", req.fileName) == 1)
     {
+
+        //
         // invio richiesta una struttura di 2 dati
         len = sizeof(servAddr);
-
-        if (sendto(sd, &req, sizeof(req), 0, (struct sockaddr *)&servAddr, len) < 0) // invio la richiesta al server
+        if (sendto(sd, &req, sizeof(req), 0, (struct sockaddr *)&servAddr, len) < 0)
         {
             perror("sendto");
             // se questo invio fallisce il client torna all'inzio del ciclo
             printf("Dammi il nome di file, EOF per terminare: ");
             continue;
         }
-
         /* ricezione del risultato */
-        if (recvfrom(sd, &ris, sizeof(ris), 0, (struct sockaddr *)&servAddr, &len) < 0) // ricevo il risultato dal server
+        if (recvfrom(sd, &ris, sizeof(ris), 0, (struct sockaddr *)&servAddr, &len) < 0)
         {
             perror("recvfrom");
             // se questo invio fallisce il client torna all'inzio del ciclo

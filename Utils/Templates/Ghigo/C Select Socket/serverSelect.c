@@ -17,12 +17,12 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#define WORD_LENGTH 64  // lunghezza massima di una parola
-#define MAX_INPUT 128   // lunghezza massima di un input
-#define LINE_LENGTH 256 // lunghezza massima di una linea
-#define QUEUE_TCP 10240 // lunghezza massima della coda di connessioni pendenti
+#define BUF_LEN 256
+#define QUEUE_TCP 10240
+#define LINE_LENGTH 128
+#define WORD_LENGTH 128
 
-#define max(a, b) ((a) > (b) ? (a) : (b)) // massimo tra due numeri
+#define max(a, b) ((a) > (b) ? (a) : (b))
 
 void gestore(int signo)
 {
@@ -30,8 +30,7 @@ void gestore(int signo)
     printf("esecuzione gestore di SIGCHLD \n");
     wait(&stato);
 }
-
-typedef struct /*da modificare in base alle necessita*/ // struttura per la ricezione di una richiesta UDP
+typedef struct
 {
     char dato1[WORD_LENGTH];
     char dato2[WORD_LENGTH];
@@ -39,15 +38,14 @@ typedef struct /*da modificare in base alle necessita*/ // struttura per la rice
 
 int main(int argc, char **argv)
 {
-    int socket_udp, socket_tcp, socket_conn, port, nfds, nread, serv_len; // variabili per la gestione dei socket, della porta, del numero di file descriptor, del numero di caratteri letti e della lunghezza dell'indirizzo
-    struct hostent *hostUDP, *hostTCP;                                    // struttura per la gestione degli host, contiene informazioni come l'indirizzo IP dell'host e il suo nome
-    struct sockaddr_in cliAddr, servAddr;                                 // struttura per la gestione degli indirizzi, contiene informazioni come l'indirizzo IP e la porta, sia del client che del server
-    char buf[LINE_LENGTH]; /*da modificare in base alle necessita*/       // buffer per la ricezione e l'invio di dati
-    ReqUDP req; /*da modificare in base alle necessita */                 // struttura per la ricezione di una richiesta UDP
-    const int on = 1;                                                     // variabile per la gestione delle opzioni del socket
-    fd_set rset;                                                          // maschera per la gestione dei file descriptor
-
-    /*inizializzare i dati necessari ai servizio*/
+    int socket_udp, socket_tcp, socket_conn, port, nfds, nread, serv_len;
+    struct hostent *hostUDP, *hostTCP;
+    struct sockaddr_in cliAddr, servAddr;
+    char buf[BUF_LEN]; ////da modificare
+    ReqUDP req;        // da modificare
+    const int on = 1;
+    fd_set rset;
+    // TODO init data
 
     /* CONTROLLO ARGOMENTI ---------------------------------- */
     if (argc != 2)
@@ -80,20 +78,8 @@ int main(int argc, char **argv)
     servAddr.sin_family = AF_INET;
     servAddr.sin_addr.s_addr = INADDR_ANY;
     servAddr.sin_port = htons(port);
-
-    /*
-     * creazione socket TCP di ascolto
-     *
-     *  // q: perchè lo crei due volte?
-     *  // a: perchè il primo è sbagliato, non è stato controllato il valore di ritorno
-     *  // q: ma non si può includere anche il secondo e il terzo controllo nel primo if?
-     *  // a: si, ma è più chiaro così
-     *  // q: ok perfetto, grazie
-     *  // a: prego
-     *
-     */
-
-    socket_tcp = socket(AF_INET, SOCK_STREAM, 0); // creazione socket
+    // creazione socket d ascolto TCP
+    socket_tcp = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_tcp < 0)
     {
         printf("errore creazione socket TCP");
@@ -102,7 +88,6 @@ int main(int argc, char **argv)
     printf("[DEBUG] creata socket di ascolto TCP, fd=%d \n", socket_tcp);
 
     socket_tcp = socket(AF_INET, SOCK_STREAM, 0);
-
     if (setsockopt(socket_tcp, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
     {
         printf("errore di opzione socket di ascolto TCP");
@@ -122,9 +107,7 @@ int main(int argc, char **argv)
     }
     printf("[DEBUG] listen socket di ascolto TCP OK \n");
 
-    /*
-     * creazione socket UDP di ascolto
-     */
+    // creazione e settaggi UDP
     socket_udp = socket(AF_INET, SOCK_DGRAM, 0);
     if (socket_udp < 0)
     {
@@ -153,12 +136,8 @@ int main(int argc, char **argv)
     FD_ZERO(&rset);
     nfds = max(socket_tcp, socket_udp) + 1;
 
-    // il server si mette in attesa di richieste
+    // ciclo di ricezione richieste
     printf("[DEBUG] Server: mi metto in attesa\n");
-
-    /*
-     * ciclo di ricezione richieste
-     */
     for (;;)
     {
         FD_SET(socket_udp, &rset);
@@ -176,14 +155,12 @@ int main(int argc, char **argv)
             }
         }
 
-        /*
-         *   GESTIONE RICHIESTE UDP
-         */
+        // gestione richieste UDP
         if (FD_ISSET(socket_udp, &rset))
         {
             printf("[DEBUG] ricevuta una richiesta di UDP \n");
             serv_len = sizeof(struct sockaddr_in);
-            /*da modificare in base alle necessita */
+            // da modificare
             if (recvfrom(socket_udp, &req, sizeof(req), 0, (struct sockaddr *)&cliAddr, &serv_len))
             {
                 printf("recvfrom");
@@ -201,21 +178,10 @@ int main(int argc, char **argv)
             {
                 printf("Operazione richiesta da: %s %i\n", hostUDP->h_name, (unsigned)ntohs(cliAddr.sin_port));
             }
-
-            /* CODICE DEL SERVER PER RICHIESTE UDP*/
+            /* CODICE DEL SERVER*/
             int esito = 0;
 
-            // eisto=htonl(num); // conversione in network byte order se necessario.
-            /*
-             *   // Q: Quando è necessario?
-             *   // A: Quando si inviano dati a un client che non è sulla stessa macchina
-             *   //    e che potrebbe avere una diversa architettura hardware
-             *   //    (es. big endian vs little endian)
-             *
-             *   // Q: quando invece client e server sono sulla stessa macchina?
-             *   // A: in quel caso non è necessario convertire i dati in network byte order
-             */
-
+            // eisto=htonl(num);
             // mando in dietro il esito
             if (sendto(socket_udp, esito, sizeof(esito), 0, (struct sockaddr *)&cliAddr, serv_len))
             {
@@ -225,9 +191,7 @@ int main(int argc, char **argv)
             printf("[DEBUG] ho mandato l'esito al client\n ");
         }
 
-        /*
-         *  GESTIONE RICHIESTE TCP
-         */
+        // Gestione richieste TCP
         if (FD_ISSET(socket_tcp, &rset))
         {
             serv_len = sizeof(struct sockaddr_in);
@@ -258,26 +222,13 @@ int main(int argc, char **argv)
                 close(socket_tcp);
                 printf("[DEBUG]Server (figlio): eseguo pid=%i\n", getpid());
                 /* server code */
-
-                // dichiarazione variabili
-
                 int esito;
                 int dato;
-
-                while ((nread = read(socket_conn, &dato, sizeof(dato))) > 0) // finchè ci sono dati da leggere
+                while ((nread = read(socket_conn, &dato, sizeof(dato))) > 0)
                 {
-                    // implementazione del server TCP
                 }
                 write(socket_conn, &esito, sizeof(esito));
                 // write(socket_conn, &zero, 1); invio di un zero binario
-                /*
-                 *  // q: perchè invii un zero binario?
-                 *  // a: per segnalare al client che la trasmissione è terminata
-                 *  // q: perchè in questo codice è commentato?
-                 *  // a: perchè non è necessario, il client sa che la trasmissione è terminata quando il server chiude la connessione
-                 *  // q: ok, grazie
-                 *  // a: prego
-                 */
 
                 // chiusura di socket connessione
                 shutdown(socket_conn, SHUT_RD);

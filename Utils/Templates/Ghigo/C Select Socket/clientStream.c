@@ -8,17 +8,16 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-#define WORD_LENGTH 64  // lunghezza massima di una parola
-#define MAX_INPUT 128   // lunghezza massima di un input
-#define LINE_LENGTH 256 // lunghezza massima di una linea
+#define LINE_LENGTH 256
+#define MAX_INPUT 128
 
 int main(int argc, char const *argv[])
 {
 
-    struct hostent *host;                             // struttura per la gestione degli host, contiene informazioni come l'indirizzo IP dell'host e il suo nome
-    struct sockaddr_in servAddr;                      // struttura per la gestione degli indirizzi, contiene informazioni come l'indirizzo IP e la porta, sia del client che del server
-    int port, sd, nread;                              // variabili per la gestione della porta, del socket, della lunghezza dell'indirizzo, del risultato e del numero di caratteri letti
-    char datoInput[MAX_INPUT], datoOutput[MAX_INPUT]; // dati in input e in output
+    struct hostent *host;
+    struct sockaddr_in servAddr;
+    int port, sd, nread;
+    char datoInput[MAX_INPUT], datoOutput[MAX_INPUT];
 
     /* CONTROLLO ARGOMENTI ---------------------------------- */
     if (argc != 3)
@@ -61,12 +60,12 @@ int main(int argc, char const *argv[])
     }
     else
     {
-        servAddr.sin_addr.s_addr = ((struct in_addr *)(host->h_addr))->s_addr; // assegno l'indirizzo IP del server
-        servAddr.sin_port = htons(port);                                       // assegno la porta del server
+        servAddr.sin_addr.s_addr = ((struct in_addr *)(host->h_addr))->s_addr;
+        servAddr.sin_port = htons(port);
     }
 
     // CREAZIONE SOCKET
-    sd = socket(AF_INET, SOCK_STREAM, 0); // creazione socket
+    sd = socket(AF_INET, SOCK_STREAM, 0);
     if (sd < 0)
     {
         perror("[ERR] apertura socket ");
@@ -83,28 +82,24 @@ int main(int argc, char const *argv[])
 
     // CICLO INTERAZIONE
     int ris;
+    printf("inserisci dato input, EOF per terminare");
 
-    printf("Inserire un dato (EOF per terminare): ");
-
-    while (gets(datoInput)) // finche' c'e' input
+    while (gets(datoInput))
     {
-        /*
-         * codice per la gestione dell'input da utente e output su socket, ricezione del risultato
-         */
-
-        // input check
 
         // invio richiesta
-        write(sd, datoInput, strlen(datoInput));
+        if (write(sd, datoInput, strlen(datoInput)) < 0)
+        {
+            perror("write");
+            printf("inserisci dato input, EOF per terminare");
+        }
 
         // ricezione risultato
-        read(sd, &datoOutput, sizeof(datoOutput));
-
-        // response check
-
-        // stampa risultato
-
-        printf("Inserire un dato (EOF per terminare): ");
+        if (read(sd, &datoOutput, sizeof(datoOutput)) < 0)
+        {
+            perror("read");
+            printf("inserisci dato input, EOF per terminare");
+        }
     }
 
     // FINE CICLO INTERAZIONE

@@ -112,7 +112,7 @@ int main(int argc, char const *argv[])
         }
         else
         {
-            printf("dir non presente sul sercer");
+            printf("dir non presente sul server");
         }
 
         printf("inserisci il nome del direttorio, ^D per terminare");

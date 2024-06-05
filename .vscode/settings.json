@@ -5,6 +5,7 @@
     "text_encoding": "c",
     "typeinfo": "c",
     "functional": "c",
-    "types.h": "c"
+    "types.h": "c",
+    "netdb.h": "c"
   }
 }

@@ -27,7 +27,7 @@
 #define MODELLO_LENGTH 20
 #define FOTO_LENGTH 30
 #define BUFF_LENGTH 255
-#define max(a, b)   ((a) > (b) ? (a) : (b))
+#define max(a, b) ((a) > (b) ? (a) : (b))
 
 /********************************************************/
 void gestore(int signo)
@@ -48,7 +48,6 @@ typedef struct
     char foto[FOTO_LENGTH];
 } Prenotazione;
 
-
 int main(int argc, char **argv)
 {
     struct sockaddr_in cliaddr, servaddr;
@@ -58,8 +57,8 @@ int main(int argc, char **argv)
     fd_set rset;
 
     // TCP variabili
-    char modello[MODELLO_LENGTH],buff[BUFF_LENGTH];
-    int file_count,file_name_length,image_fd,file_length;
+    char modello[MODELLO_LENGTH], buff[BUFF_LENGTH];
+    int file_count, file_name_length, image_fd, file_length;
 
     // UDP variabili
     char reqId[ID_LENGTH];
@@ -69,49 +68,49 @@ int main(int argc, char **argv)
     for (int i = 0; i < MAX_PREN; i++)
     {
         Prenotazione p;
-        strcpy(p.id,"L");
-        strcpy(p.data,"-1/-1/-1");
+        strcpy(p.id, "L");
+        strcpy(p.data, "-1/-1/-1");
         p.giorni = -1;
-        strcpy(p.modello,"-1");
+        strcpy(p.modello, "-1");
         p.costo = -1;
-        strcpy(p.foto,"L");
+        strcpy(p.foto, "L");
         prenotazioni[i] = p;
     }
 
-    strcpy(prenotazioni[0].id,"X123");
-    strcpy(prenotazioni[0].data,"12/12/2022");
-    prenotazioni[0].giorni=15;
-    strcpy(prenotazioni[0].modello,"GoodSnow");
-    prenotazioni[0].costo=10;
-    strcpy(prenotazioni[0].foto,"GoodSnow.jpg");
+    strcpy(prenotazioni[0].id, "X123");
+    strcpy(prenotazioni[0].data, "12/12/2022");
+    prenotazioni[0].giorni = 15;
+    strcpy(prenotazioni[0].modello, "GoodSnow");
+    prenotazioni[0].costo = 10;
+    strcpy(prenotazioni[0].foto, "GoodSnow.jpg");
 
-    strcpy(prenotazioni[4].id,"P123");
-    strcpy(prenotazioni[4].data,"15/12/2022");
-    prenotazioni[4].giorni=15;
-    strcpy(prenotazioni[4].modello,"GoodSnow");
-    prenotazioni[4].costo=10;
-    strcpy(prenotazioni[4].foto,"GoodSnow copy.jpg");
+    strcpy(prenotazioni[4].id, "P123");
+    strcpy(prenotazioni[4].data, "15/12/2022");
+    prenotazioni[4].giorni = 15;
+    strcpy(prenotazioni[4].modello, "GoodSnow");
+    prenotazioni[4].costo = 10;
+    strcpy(prenotazioni[4].foto, "GoodSnow copy.jpg");
 
-    strcpy(prenotazioni[1].id,"A123");
-    strcpy(prenotazioni[1].data,"01/12/2022");
-    prenotazioni[1].giorni=5;
-    strcpy(prenotazioni[1].modello,"BadSnow");
-    prenotazioni[1].costo=2;
-    strcpy(prenotazioni[1].foto,"BadSnow.jpg");
+    strcpy(prenotazioni[1].id, "A123");
+    strcpy(prenotazioni[1].data, "01/12/2022");
+    prenotazioni[1].giorni = 5;
+    strcpy(prenotazioni[1].modello, "BadSnow");
+    prenotazioni[1].costo = 2;
+    strcpy(prenotazioni[1].foto, "BadSnow.jpg");
 
-    strcpy(prenotazioni[2].id,"C123");
-    strcpy(prenotazioni[2].data,"20/12/2022");
-    prenotazioni[2].giorni=2;
-    strcpy(prenotazioni[2].modello,"Medium");
-    prenotazioni[2].costo=8;
-    strcpy(prenotazioni[2].foto,"Medium.jpg");
+    strcpy(prenotazioni[2].id, "C123");
+    strcpy(prenotazioni[2].data, "20/12/2022");
+    prenotazioni[2].giorni = 2;
+    strcpy(prenotazioni[2].modello, "Medium");
+    prenotazioni[2].costo = 8;
+    strcpy(prenotazioni[2].foto, "Medium.jpg");
 
-    strcpy(prenotazioni[3].id,"E123");
-    strcpy(prenotazioni[3].data,"-1/-1/-1");
-    prenotazioni[3].giorni=-1;
-    strcpy(prenotazioni[3].modello,"Bob");
-    prenotazioni[3].costo=7;
-    strcpy(prenotazioni[3].foto,"Bob.jpg");
+    strcpy(prenotazioni[3].id, "E123");
+    strcpy(prenotazioni[3].data, "-1/-1/-1");
+    prenotazioni[3].giorni = -1;
+    strcpy(prenotazioni[3].modello, "Bob");
+    prenotazioni[3].costo = 7;
+    strcpy(prenotazioni[3].foto, "Bob.jpg");
 
     /*printf("ID|DATA|GIORNI|MODELLO|COSTO|FOTO\n");
 
@@ -262,13 +261,16 @@ int main(int argc, char **argv)
             }
 
             ris = -1;
-            for ( int i = 0; i < MAX_PREN; i++ ) {
-                if ( strcmp(prenotazioni[i].id,reqId) == 0 ) {
-                    if((prenotazioni[i].costo!=-1) && (prenotazioni[i].giorni!=-1)){
+            for (int i = 0; i < MAX_PREN; i++)
+            {
+                if (strcmp(prenotazioni[i].id, reqId) == 0)
+                {
+                    if ((prenotazioni[i].costo != -1) && (prenotazioni[i].giorni != -1))
+                    {
                         ris = prenotazioni[i].costo * prenotazioni[i].giorni;
                     }
                     break;
-                } 
+                }
             }
 
             // Send result to the client
@@ -309,52 +311,58 @@ int main(int argc, char **argv)
                 }
 
                 // Leggo il modello
-                if ( read(conn_sd, modello, MODELLO_LENGTH) < 0 ) {
+                if (read(conn_sd, modello, MODELLO_LENGTH) < 0)
+                {
                     perror("read");
                     continue;
                 }
 
                 printf("Server (figlio): modello richiesto: %s\n", modello);
 
-                file_count=0;
-                for(int i=0;i<MAX_PREN;i++){
-                    if(strcmp(modello,prenotazioni[i].modello)==0){
+                file_count = 0;
+                for (int i = 0; i < MAX_PREN; i++)
+                {
+                    if (strcmp(modello, prenotazioni[i].modello) == 0)
+                    {
                         file_count++;
                     }
                 }
 
-                printf("Invio il numero delle foto trovate per il modello %s\n",modello);
-                if(write(conn_sd,&file_count,sizeof(file_count))<0){
+                printf("Invio il numero delle foto trovate per il modello %s\n", modello);
+                if (write(conn_sd, &file_count, sizeof(file_count)) < 0)
+                {
                     perror("write");
                     continue;
                 }
 
-                for(int i=0;i<MAX_PREN;i++){
-                    if(strcmp(modello,prenotazioni[i].modello)==0){
-                        //invio lunghezza nome file
-                        file_name_length = htonl(strlen(prenotazioni[i].foto)+1);
-                        if (write(conn_sd, &file_name_length, sizeof(int) ) < 0)
+                for (int i = 0; i < MAX_PREN; i++)
+                {
+                    if (strcmp(modello, prenotazioni[i].modello) == 0)
+                    {
+                        // invio lunghezza nome file
+                        file_name_length = htonl(strlen(prenotazioni[i].foto) + 1);
+                        if (write(conn_sd, &file_name_length, sizeof(int)) < 0)
                         {
                             perror("Errore nell'invio del nome file\n");
                             continue;
                         }
 
-                        //invio nome file
+                        // invio nome file
                         if (write(conn_sd, prenotazioni[i].foto, (strlen(prenotazioni[i].foto) + 1)) < 0)
                         {
                             perror("Errore nell'invio del nome file\n");
                             continue;
                         }
 
-                        printf("file: %s\n",prenotazioni[i].foto);
-                        image_fd = open(prenotazioni[i].foto,O_RDONLY);
-                        file_length = lseek(image_fd,0,SEEK_END);
-                        lseek(image_fd,0,SEEK_SET);
+                        printf("file: %s\n", prenotazioni[i].foto);
+                        image_fd = open(prenotazioni[i].foto, O_RDONLY);
+                        file_length = lseek(image_fd, 0, SEEK_END);
+                        lseek(image_fd, 0, SEEK_SET);
 
-                        printf("Invio lunghezza file: %i\n",file_length);
-                        file_length=htonl(file_length);
+                        printf("Invio lunghezza file: %i\n", file_length);
+                        file_length = htonl(file_length);
 
-                        //invio lunghezza file
+                        // invio lunghezza file
                         if (write(conn_sd, &file_length, sizeof(file_length)) < 0)
                         {
                             perror("Errore nell'invio della lunghezza\n");
