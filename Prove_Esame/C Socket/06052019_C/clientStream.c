@@ -82,40 +82,85 @@ int main(int argc, char const *argv[])
     printf("[DEBUG] Connect ok\n");
 
     // CICLO INTERAZIONE
-    int ris;
-    char dirName[WORD_LENGTH], bufferChar;
+    int ris, fd;
+    char dirName[WORD_LENGTH], bufferChar, fileName[WORD_LENGTH];
+    long fileLength;
 
-    printf("inserisci il nome del direttorio, ^D per terminare");
+    printf("inserisci il nome del direttorio, ^D per terminare: ");
     while (gets(dirName))
     {
-        write(sd, dirName, strlen(dirName));
+        dirName[strcspn(dirName, "\n")] = 0; // Remove newline character
+        write(sd, dirName, sizeof(dirName));
 
-        read(sd, &bufferChar, sizeof(char));
-
-        if (bufferChar == 'S')
+        char response;
+        int numberOfFiles;
+        read(sd, &response, sizeof(response));
+        if (response == 'S')
         {
-            while ((nread = read(sd, &bufferChar, sizeof(char))) > 0)
+            printf("dir presente sul server\n");
+
+            if (read(sd, &numberOfFiles, sizeof(numberOfFiles)) < 0)
             {
-                if (bufferChar == '\1')
+                perror("read");
+                exit(5);
+            }
+            numberOfFiles = ntohl(numberOfFiles);
+            printf("numberOfFiles: %d\n", numberOfFiles);
+
+            while (read(sd, fileName, sizeof(fileName)) > 0 || numberOfFiles-- > 0)
+            {
+                printf("fileName: %s\n", fileName);
+
+                fd = open(fileName, O_WRONLY | O_CREAT | O_TRUNC, 0777);
+                if (fd < 0)
                 {
-                    break;
+                    perror("open");
+                    continue;
                 }
-                else if (bufferChar = '\0')
+
+                long netFileLength;
+                read(sd, &netFileLength, sizeof(netFileLength));
+                fileLength = ntohl(netFileLength);
+
+                while (fileLength >= 0)
                 {
-                    printf("\n");
+                    nread = read(sd, &bufferChar, sizeof(char));
+                    if (nread <= 0)
+                    {
+                        perror("read");
+                        break;
+                    }
+
+                    if (bufferChar == '\1')
+                    {
+                        break;
+                    }
+                    else if (bufferChar == '\0')
+                    {
+                        printf("\n");
+                    }
+                    else
+                    {
+                        write(fd, &bufferChar, sizeof(char));
+                    }
+
+                    fileLength -= nread;
                 }
-                else
+                printf("file %s ricevuto\n", fileName);
+                if (close(fd) < 0)
                 {
-                    write(1, &bufferChar, sizeof(char));
+                    perror("close");
                 }
+                printf("file %s chiuso\n", fileName);
+                break;
             }
         }
         else
         {
-            printf("dir non presente sul server");
+            printf("dir non presente sul server\n");
         }
 
-        printf("inserisci il nome del direttorio, ^D per terminare");
+        printf("inserisci il nome del direttorio, ^D per terminare: ");
     }
 
     // FINE CICLO INTERAZIONE

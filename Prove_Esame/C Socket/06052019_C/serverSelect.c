@@ -294,109 +294,100 @@ int main(int argc, char **argv)
             else
                 printf("[DEBUG ]Server (figlio): host client e' %s \n", hostTCP->h_name);
             // processo figlio che gestisce la richiesta
+            // Inside the child process handling the TCP request
             if (fork() == 0)
             {
                 close(socket_tcp);
                 printf("[DEBUG]Server (figlio): eseguo pid=%i\n", getpid());
                 /* server code */
-                int esito;
-                int dato;
-
-                char dirName[WORD_LENGTH], files[MAX_FILES][WORD_LENGTH], fileName[WORD_LENGTH], path[WORD_LENGTH * 2], buff[WORD_LENGTH];
-                char risp, c;
+                char dirName[WORD_LENGTH], fileName[WORD_LENGTH], path[WORD_LENGTH * 2], buffer[LINE_LENGTH];
                 DIR *dir;
                 struct dirent *file;
-                int dir_name_length, file_count, consonanti, vocali, ind, file_name_length, i, fd, file_length;
+                int nread, fd, numberOfFiles;
+                long fileLength;
 
-                while ((nread = read(socket_conn, &dirName, sizeof(dir))) > 0)
+                while ((nread = read(socket_conn, dirName, sizeof(dirName))) > 0)
                 {
+                    printf("[DEBUG] Server TCP (figlio): ricevuto %s\n", dirName);
+                    numberOfFiles = 0;
+
                     if ((dir = opendir(dirName)) != NULL)
                     {
-                        risp = 'S';
-                        write(socket_tcp, &risp, sizeof(char));
-                        file_count = 0;
-                        i = 0;
+                        printf("[DEBUG] Server TCP (figlio): dir aperto %s\n", dirName);
+                        char response = 'S';
+                        write(socket_conn, &response, sizeof(char));
+
                         while ((file = readdir(dir)) != NULL)
                         {
-                            strcat(file->d_name, "\0");
-                            printf("%s\n", file->d_name);
-                            ind = 0;
-                            vocali = 0;
-                            consonanti = 0;
-
-                            while ((c = file->d_name[ind]) != '\0')
+                            if (strcmp(file->d_name, ".") == 0 || strcmp(file->d_name, "..") == 0)
                             {
-                                if (c != 'A' && c != 'a' && c != 'E' && c != 'e' && c != 'I' && c != 'i' && c != 'O' && c != 'o' && c != 'U' && c != 'u')
-                                {
-                                    consonanti++;
-                                }
-                                else
-                                {
-                                    vocali++;
-                                }
-                                ind++;
-
-                                if (consonanti > 0 && vocali > 0)
-                                {
-                                    strcpy(files[i++], file->d_name);
-                                    file_count++;
-                                    break;
-                                }
+                                continue;
                             }
 
-                            // Scrivo path
-                            strcpy(path, dirName);
-                            strcat(path, "/");
-                            strcat(path, fileName);
+                            numberOfFiles++;
+                        }
+
+                        rewinddir(dir);
+
+                        printf("[DEBUG] Server TCP (figlio): numero di file %d\n", numberOfFiles);
+
+                        numberOfFiles = htonl(numberOfFiles);
+
+                        if (write(socket_conn, &numberOfFiles, sizeof(int)) < 0)
+                        {
+                            perror("write");
+                            exit(1);
+                        }
+
+                        while ((file = readdir(dir)) != NULL)
+                        {
+                            if (strcmp(file->d_name, ".") == 0 || strcmp(file->d_name, "..") == 0)
+                            {
+                                continue;
+                            }
+
+                            strcpy(fileName, file->d_name);
+                            write(socket_conn, fileName, sizeof(fileName));
+                            sprintf(path, "%s/%s", dirName, fileName);
 
                             fd = open(path, O_RDONLY);
-
                             if (fd < 0)
                             {
                                 perror("open");
                                 continue;
                             }
 
-                            // invio il file
+                            fileLength = lseek(fd, 0, SEEK_END);
+                            lseek(fd, 0, SEEK_SET);
+                            long netFileLength = htonl(fileLength);
+                            write(socket_conn, &netFileLength, sizeof(netFileLength));
 
-                            while ((nread = read(fd, buff, sizeof(buff))) > 0)
+                            while ((nread = read(fd, buffer, sizeof(buffer))) > 0)
                             {
-                                if (nread < 0)
-                                {
-                                    perror("read");
-                                    close(fd);
-                                    close(socket_tcp);
-                                    exit(6);
-                                }
-                                if (write(socket_tcp, buff, nread) < 0)
+                                if (write(socket_conn, buffer, nread) != nread)
                                 {
                                     perror("write");
-                                    close(fd);
-                                    close(socket_tcp);
-                                    exit(6);
+                                    break;
                                 }
                             }
 
+                            // aggiungo un carattere di terminazione
+                            char terminator = '\1';
+                            write(socket_conn, &terminator, sizeof(char));
+
                             close(fd);
                         }
+                        closedir(dir);
                     }
                     else
                     {
-                        risp = 'N';
-                        write(socket_tcp, &risp, sizeof(char));
+                        char response = 'N';
+                        write(socket_conn, &response, sizeof(char));
                     }
                 }
-                write(socket_conn, &esito, sizeof(esito));
-                // write(socket_conn, &zero, 1); invio di un zero binario
-
-                // chiusura di socket connessione
-                shutdown(socket_conn, SHUT_RD);
-                shutdown(socket_conn, SHUT_WR);
-                printf("[DEBUG] Server TCP (figlio): chiudo, pid=%i\n", getpid());
                 close(socket_conn);
-                exit(1);
-            } // figlio
-            // padre chiude il socket di connessione
+                exit(0);
+            }
             close(socket_conn);
         }
     }

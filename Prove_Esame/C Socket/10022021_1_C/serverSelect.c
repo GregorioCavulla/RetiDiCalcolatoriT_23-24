@@ -64,7 +64,7 @@ void inizializza()
 
     sprintf(table[0].dataString, "%d/%d/%d", 8, 12, 2023);
     table[0].giorni = 5;
-    strcpy(table[0].modello, "Volk Racetiger SL");
+    strcpy(table[0].modello, "VolkRacetigerSL");
     table[0].costo_giornaliero = 43.5;
     strcpy(table[0].nome_file_foto, "Volkl_Racetiger_SL.jpg");
 
@@ -72,7 +72,7 @@ void inizializza()
 
     sprintf(table[1].dataString, "%d/%d/%d", 31, 1, 2024);
     table[1].giorni = 3;
-    strcpy(table[1].modello, "Atomic Redster X9");
+    strcpy(table[1].modello, "AtomicRedsterX9");
     table[1].costo_giornaliero = 45.5;
     strcpy(table[1].nome_file_foto, "Atomic_Redster_X9.jpg");
 
@@ -80,7 +80,7 @@ void inizializza()
 
     sprintf(table[2].dataString, "%d/%d/%d", 4, 2, 2024);
     table[2].giorni = 2;
-    strcpy(table[2].modello, "Rossignol Hero Elite ST");
+    strcpy(table[2].modello, "RossignolHeroEliteST");
     table[2].costo_giornaliero = 40.5;
     strcpy(table[2].nome_file_foto, "Rossignol_Hero_Elite_ST.jpg");
 
@@ -88,7 +88,7 @@ void inizializza()
 
     sprintf(table[3].dataString, "%d/%d/%d", 15, 3, 2024);
     table[3].giorni = 4;
-    strcpy(table[3].modello, "Fischer RC4 Worldcup SC");
+    strcpy(table[3].modello, "FischerRC4WorldcupSC");
     table[3].costo_giornaliero = 42.5;
     strcpy(table[3].nome_file_foto, "Fischer_RC4_Worldcup_SC.jpg");
 
@@ -96,7 +96,7 @@ void inizializza()
 
     sprintf(table[4].dataString, "%d/%d/%d", 31, 1, 2024);
     table[4].giorni = 3;
-    strcpy(table[4].modello, "Salomon S/Max Blast");
+    strcpy(table[4].modello, "SalomonS/MaxBlast");
     table[4].costo_giornaliero = 44.5;
     strcpy(table[4].nome_file_foto, "Salomon_S_Max_Blast.jpg");
 
@@ -360,15 +360,19 @@ int main(int argc, char **argv)
                     }
                 }
 
+                printf("[DEBUG] Server TCP (figlio): ricevuto modello %s\n", modello);
+
                 nRisposte = 0;
 
                 for (int i = 0; i < N; i++)
                 {
-                    if (strcmp(noleggio.modello, modello) == 0)
+                    if (strcmp(table[i].modello, modello) == 0)
                     {
                         nRisposte++;
                     }
                 }
+
+                printf("[DEBUG] Server TCP (figlio): trovate %d prenotazioni per il modello %s\n", nRisposte, modello);
 
                 if (write(socket_conn, &nRisposte, sizeof(nRisposte)) < 0)
                 {
@@ -378,9 +382,37 @@ int main(int argc, char **argv)
 
                 for (int i = 0; i < N; i++)
                 {
-                    if (strcmp(noleggio.modello, modello) == 0)
+                    if (strcmp(table[i].modello, modello) == 0)
                     {
-                        img_fd = open(table[i].nome_file_foto, O_RDONLY);
+
+                        if (write(socket_conn, &table[i], sizeof(table[i])) < 0)
+                        {
+                            perror("write");
+                            continue;
+                        }
+
+                        char path[LINE_LENGTH];
+                        strcpy(path, "imgs/");
+                        strcat(path, table[i].nome_file_foto);
+
+                        printf("[DEBUG] Server TCP (figlio): invio file %s\n", path);
+
+                        img_fd = open(path, O_RDONLY);
+
+                        if (img_fd < 0)
+                        {
+                            perror("open");
+
+                            fileLength = -1;
+                            if (write(socket_conn, &fileLength, sizeof(fileLength)) < 0)
+                            {
+                                perror("write");
+                                continue;
+                            }
+
+                            continue;
+                        }
+
                         fileLength = lseek(img_fd, 0, SEEK_END);
                         lseek(img_fd, 0, SEEK_SET);
 
@@ -392,11 +424,19 @@ int main(int argc, char **argv)
                             continue;
                         }
 
+                        if (write(socket_conn, table[i].nome_file_foto, sizeof(table[i].nome_file_foto)) < 0)
+                        {
+                            perror("write");
+                            continue;
+                        }
+
                         while ((nread = read(img_fd, buff, sizeof(buff))) > 0)
                         {
                             write(socket_conn, buff, sizeof(buff));
                         }
                         close(img_fd);
+
+                        printf("[DEBUG] Server TCP (figlio): inviato file %s\n", path);
                     }
                 }
 

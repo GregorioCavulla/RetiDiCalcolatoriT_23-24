@@ -102,6 +102,7 @@ int main(int argc, char const *argv[])
     int ris;
 
     int fileLength;
+    char fileName[LINE_LENGTH];
     char buff[255];
     int img_fd;
 
@@ -122,7 +123,6 @@ int main(int argc, char const *argv[])
         }
 
         // ricezione risultato
-
         if (read(sd, &nRisposte, sizeof(nRisposte)) < 0)
         {
             perror("read");
@@ -130,10 +130,11 @@ int main(int argc, char const *argv[])
             continue;
         }
 
-        printf("trovate %d prenotazioni per il modello: %s", nRisposte, modello);
+        printf("Risultati trovati %d\n", nRisposte);
 
-        for (int i = 0; i <= nRisposte; i++)
+        for (int i = 0; i < nRisposte; i++)
         {
+            printf("[DEBUG] Ricevo risposta %d\n", i);
             if (read(sd, &risposta, sizeof(risposta)) < 0)
             {
                 perror("read");
@@ -141,14 +142,21 @@ int main(int argc, char const *argv[])
                 continue;
             }
 
-            img_fd = open(risposta.nome_file_foto, O_WRONLY | O_CREAT, 0777);
-
             if (read(sd, &fileLength, sizeof(fileLength)) < 0)
             {
                 perror("read");
                 printf("Nome del modello, EOF per terminare: ");
                 continue;
             }
+
+            if (read(sd, &fileName, sizeof(fileName)) < 0)
+            {
+                perror("read");
+                printf("Nome del modello, EOF per terminare: ");
+                continue;
+            }
+
+            img_fd = open(fileName, O_WRONLY | O_CREAT, 0777);
 
             // fileLength = ntohl(fileLength);
 
