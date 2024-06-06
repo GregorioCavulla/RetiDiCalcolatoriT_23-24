@@ -7,21 +7,18 @@
 #include <netdb.h>
 #include <string.h>
 
+#define LINE_LENGTH 256
+#define MAX_INPUT 128
 #define WORD_LENGTH 64
-#define LINE_LENGHT 256
-
-// typedef struct
-// {
-//     char fileName[WORD_LENGTH];
-//    char parola[WORD_LENGTH];
-// } fileNameUDP;
 
 int main(int argc, char const *argv[])
 {
+    /* inizializzazioni variabili per la comunicazione */
+
     struct hostent *host;
     struct sockaddr_in clientAddr, servAddr;
-    int port, sd, len, result, nread;
-    char fileName[LINE_LENGHT];
+    int port, sd, len, result, nread, ris;
+    char fileName[LINE_LENGTH];
 
     /* CONTROLLO ARGOMENTI ---------------------------------- */
     if (argc != 3)
@@ -35,6 +32,7 @@ int main(int argc, char const *argv[])
     clientAddr.sin_family = AF_INET;
     clientAddr.sin_addr.s_addr = INADDR_ANY;
     clientAddr.sin_port = 0;
+
     // INIZIALIZZAZIONE INDIRIZZO SERVER
     memset((char *)&servAddr, 0, sizeof(struct sockaddr_in));
     servAddr.sin_family = AF_INET;
@@ -53,6 +51,7 @@ int main(int argc, char const *argv[])
         nread++;
     }
     port = atoi(argv[2]);
+
     // Verifico port
     if (port < 1024 || port > 65535)
     {
@@ -88,37 +87,41 @@ int main(int argc, char const *argv[])
     }
     printf("[DEBUG] %s: bind socket ok, alla porta %i\n", argv[0], clientAddr.sin_port);
 
-    // CODICE DEL CLIENTE
+    /**
+     * CORPO DEL CLIENT:
+     */
+
     printf("Inserire il nome del file , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
 
-    // CICLO INTERAZIONE
-    int ris;
-    // while (scanf("%s", fileName.fileName) ==1)
     while (gets(fileName))
     {
-        len = sizeof(servAddr);
-        if (sendto(sd, &fileName, sizeof(fileName), 0, (struct sockaddr *)&servAddr, len) < 0)
+        // invio del nome del file
+        if (sendto(sd, &fileName, sizeof(fileName), 0, (struct sockaddr *)&servAddr, sizeof(servAddr)) < 0)
         {
             perror("sendto");
             // se questo invio fallisce il client torna all'inzio del ciclo
-            printf("Dammi il nome di file, EOF per terminare: ");
+            printf("Inserire il nome del file , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
             continue;
         }
-        /* ricezione del risultato */
-        if (recvfrom(sd, &ris, sizeof(ris), 0, (struct sockaddr *)&servAddr, &len) < 0)
+
+        // ricevo il risultato (numero di vocali eliminate)
+        if (recvfrom(sd, &ris, sizeof(ris), 0, (struct sockaddr *)&servAddr, sizeof(servAddr)) < 0)
         {
             perror("recvfrom");
             // se questo invio fallisce il client torna all'inzio del ciclo
             printf("Dammi il nome di file, EOF per terminare: ");
             continue;
         }
-        if (ris < 0)
+
+        ris = ntohl(ris); // ricostruisco il numero di vocali eliminato (da network a host byte order)
+
+        if (ris < 0) // stabilito nel codice del server
         {
             printf("Cliente: Errore\n");
         }
         else
         {
-            printf("Cliente: risultato ottenuto = %d\n", ris);
+            printf("Cliente: eliminate %d vocali \n", ris);
         }
         printf("Inserire  il nome del file , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
     }

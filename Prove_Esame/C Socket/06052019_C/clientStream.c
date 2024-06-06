@@ -14,11 +14,16 @@
 
 int main(int argc, char const *argv[])
 {
-
+    /* inizializzazioni variabili per la comunicazione */
     struct hostent *host;
     struct sockaddr_in servAddr;
     int port, sd, nread;
     char datoInput[MAX_INPUT], datoOutput[MAX_INPUT];
+
+    // inizializzazioni variabili
+    int ris, fd, numberOfFiles;
+    char dirName[WORD_LENGTH], bufferChar, fileName[WORD_LENGTH], response;
+    long fileLength;
 
     /* CONTROLLO ARGOMENTI ---------------------------------- */
     if (argc != 3)
@@ -81,36 +86,36 @@ int main(int argc, char const *argv[])
     }
     printf("[DEBUG] Connect ok\n");
 
-    // CICLO INTERAZIONE
-    int ris, fd;
-    char dirName[WORD_LENGTH], bufferChar, fileName[WORD_LENGTH];
-    long fileLength;
+    /**
+     * CICLO INTERAZIONE
+     */
 
     printf("inserisci il nome del direttorio, ^D per terminare: ");
+
     while (gets(dirName))
     {
-        dirName[strcspn(dirName, "\n")] = 0; // Remove newline character
-        write(sd, dirName, sizeof(dirName));
+        dirName[strcspn(dirName, "\n")] = 0; // Rimuovo il carattere di newline
+        write(sd, dirName, sizeof(dirName)); // Invio il nome del direttorio al servers
 
-        char response;
-        int numberOfFiles;
-        read(sd, &response, sizeof(response));
-        if (response == 'S')
+        read(sd, &response, sizeof(response)); // Leggo la risposta del server S/N
+        if (response == 'S')                   // Se il server ha trovato il direttorio
         {
-            printf("dir presente sul server\n");
+            printf("[DEBUG] il direttorio %s è presente sul server\n", dirName);
 
-            if (read(sd, &numberOfFiles, sizeof(numberOfFiles)) < 0)
+            if (read(sd, &numberOfFiles, sizeof(numberOfFiles)) < 0) // Leggo il numero di file presenti nel direttorio
             {
                 perror("read");
                 exit(5);
             }
-            numberOfFiles = ntohl(numberOfFiles);
-            printf("numberOfFiles: %d\n", numberOfFiles);
+            numberOfFiles = ntohl(numberOfFiles); // Converto il numero di file in formato host
+
+            printf("[DEBUG] numberOfFiles: %d\n", numberOfFiles);
 
             while (read(sd, fileName, sizeof(fileName)) > 0 || numberOfFiles-- > 0)
             {
                 printf("fileName: %s\n", fileName);
 
+                // creo il file
                 fd = open(fileName, O_WRONLY | O_CREAT | O_TRUNC, 0777);
                 if (fd < 0)
                 {
@@ -118,11 +123,10 @@ int main(int argc, char const *argv[])
                     continue;
                 }
 
-                long netFileLength;
-                read(sd, &netFileLength, sizeof(netFileLength));
-                fileLength = ntohl(netFileLength);
+                read(sd, &fileLength, sizeof(fileLength)); // Leggo la lunghezza del file
+                fileLength = ntohl(fileLength);            // Converto la lunghezza del file in formato host
 
-                while (fileLength >= 0)
+                while (fileLength >= 0) // Leggo il file carattere per carattere
                 {
                     nread = read(sd, &bufferChar, sizeof(char));
                     if (nread <= 0)
@@ -131,11 +135,11 @@ int main(int argc, char const *argv[])
                         break;
                     }
 
-                    if (bufferChar == '\1')
+                    if (bufferChar == '\1') // se il carattere è il carattere di fine file
                     {
                         break;
                     }
-                    else if (bufferChar == '\0')
+                    else if (bufferChar == '\0') // se il carattere è il carattere di fine riga
                     {
                         printf("\n");
                     }
@@ -146,24 +150,23 @@ int main(int argc, char const *argv[])
 
                     fileLength -= nread;
                 }
+
                 printf("file %s ricevuto\n", fileName);
                 if (close(fd) < 0)
                 {
                     perror("close");
                 }
-                printf("file %s chiuso\n", fileName);
+
                 break;
             }
         }
         else
         {
-            printf("dir non presente sul server\n");
+            printf("il direttorio %s non è presente sul server\n", dirName);
         }
 
         printf("inserisci il nome del direttorio, ^D per terminare: ");
     }
-
-    // FINE CICLO INTERAZIONE
 
     // LIBERO LE RISORSE
     printf("[DEBUG] \nClient: termino...\n");
