@@ -13,11 +13,16 @@
 
 int main(int argc, char const *argv[])
 {
-
+    /* inizializzazioni variabili per la comunicazione */
     struct hostent *host;
     struct sockaddr_in servAddr;
     int port, sd, nread;
     char datoInput[MAX_INPUT], datoOutput[MAX_INPUT];
+
+    // inizializzazioni variabili
+    int ris, fd, numberOfFiles;
+    char dirName[WORD_LENGTH], bufferChar, fileName[WORD_LENGTH], response;
+    long fileLength;
 
     /* CONTROLLO ARGOMENTI ---------------------------------- */
     if (argc != 3)
@@ -33,7 +38,6 @@ int main(int argc, char const *argv[])
     host = gethostbyname(argv[1]);
 
     // VERIFICA INTERO porta
-
     nread = 0;
     while (argv[2][nread] != '\0')
     {
@@ -80,9 +84,11 @@ int main(int argc, char const *argv[])
     }
     printf("[DEBUG] Connect ok\n");
 
-    // CICLO INTERAZIONE
-    int ris;
-    printf("inserisci dato input, EOF per terminare");
+    /**
+     * CICLO INTERAZIONE
+     */
+
+    printf("Inserire  ---------- , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
 
     while (gets(datoInput))
     {
@@ -91,14 +97,14 @@ int main(int argc, char const *argv[])
         if (write(sd, datoInput, strlen(datoInput)) < 0)
         {
             perror("write");
-            printf("inserisci dato input, EOF per terminare");
+            printf("Inserire  ---------- , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
         }
 
         // ricezione risultato
         if (read(sd, &datoOutput, sizeof(datoOutput)) < 0)
         {
             perror("read");
-            printf("inserisci dato input, EOF per terminare");
+            printf("Inserire  ---------- , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
         }
     }
 

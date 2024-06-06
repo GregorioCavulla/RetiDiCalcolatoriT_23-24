@@ -38,15 +38,12 @@ int main(int argc, char **argv)
     int socket_udp, socket_tcp, socket_conn, port, nfds, nread, serv_len;
     struct hostent *hostUDP, *hostTCP;
     struct sockaddr_in cliAddr, servAddr;
-
-    // UDP
-    char buf[LINE_LENGTH];
-    char udpFileName[LINE_LENGTH];
     const int on = 1;
     fd_set rset;
-    int esito = 0;
-    int file_fd, tempFile_fd;
-    char tempFile[WORD_LENGTH], charRead;
+
+    // UDP
+    char udpFileName[WORD_LENGTH], tempFile[WORD_LENGTH], charRead;
+    int esito = 0, file_fd, tempFile_fd;
 
     // TCP
     char dirName[WORD_LENGTH], fileName[WORD_LENGTH], path[WORD_LENGTH * 2], buffer[LINE_LENGTH];
@@ -421,6 +418,10 @@ int main(int argc, char **argv)
                         write(socket_conn, &response, sizeof(char));
                     }
                 }
+                // chiusura di socket connessione
+                shutdown(socket_conn, SHUT_RD);
+                shutdown(socket_conn, SHUT_WR);
+                printf("[DEBUG] Server TCP (figlio): chiudo, pid=%i\n", getpid());
                 close(socket_conn);
                 exit(0);
             }

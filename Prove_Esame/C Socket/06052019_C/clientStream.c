@@ -39,7 +39,6 @@ int main(int argc, char const *argv[])
     host = gethostbyname(argv[1]);
 
     // VERIFICA INTERO porta
-
     nread = 0;
     while (argv[2][nread] != '\0')
     {

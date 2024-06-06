@@ -18,6 +18,7 @@ int main(int argc, char const *argv[])
     struct hostent *host;
     struct sockaddr_in clientAddr, servAddr;
     int port, sd, len, result, nread, ris;
+
     char fileName[LINE_LENGTH];
 
     /* CONTROLLO ARGOMENTI ---------------------------------- */
