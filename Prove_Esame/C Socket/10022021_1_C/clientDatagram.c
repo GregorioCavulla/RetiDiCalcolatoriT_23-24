@@ -14,7 +14,6 @@
 typedef struct /*da modificare in base alle necessita*/ // struttura per la ricezione di una richiesta UDP
 {
     char Identificatore[5];
-    Data data;
     char dataString[WORD_LENGTH];
     int giorni;
     char modello[WORD_LENGTH];
@@ -23,24 +22,12 @@ typedef struct /*da modificare in base alle necessita*/ // struttura per la rice
 
 } Noleggio;
 
-typedef struct
-{
-    int giorno;
-    int mese;
-    int anno;
-} Data;
-typedef struct
-{
-    char fileName[WORD_LENGTH];
-    char parola[WORD_LENGTH];
-} ReqUDP;
-
 int main(int argc, char const *argv[])
 {
     struct hostent *host;
     struct sockaddr_in clientAddr, servAddr;
     int port, sd, len, result, nread;
-    ReqUDP req;
+    Noleggio risposta;
 
     /* CONTROLLO ARGOMENTI ---------------------------------- */
     if (argc != 3)
@@ -108,40 +95,62 @@ int main(int argc, char const *argv[])
     printf("[DEBUG] %s: bind socket ok, alla porta %i\n", argv[0], clientAddr.sin_port);
 
     // CODICE DEL CLIENTE
-    printf("Inserire  ---------- , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
+    printf("Inserire  identificatore noleggio, Ctrl+D(Linux) o Ctrl+Z(Windows) per terminare: ");
 
     // CICLO INTERAZIONE
+    char identificatore[5];
     int ris;
-    while (scanf("%s", req.fileName) == 1)
+    while (gets(identificatore))
     {
-
-        //
-        // invio richiesta una struttura di 2 dati
         len = sizeof(servAddr);
-        if (sendto(sd, &req, sizeof(req), 0, (struct sockaddr *)&servAddr, len) < 0)
-        {
+        // invio identificatore al server
+        if (sendto(sd, &identificatore, sizeof(identificatore), 0, (struct sockaddr *)&servAddr, len) < 0)
+        { // 1
             perror("sendto");
-            // se questo invio fallisce il client torna all'inzio del ciclo
-            printf("Dammi il nome di file, EOF per terminare: ");
+            printf("Inserire  identificatore noleggio, Ctrl+D(Linux) o Ctrl+Z(Windows) per terminare: ");
             continue;
         }
+
         /* ricezione del risultato */
         if (recvfrom(sd, &ris, sizeof(ris), 0, (struct sockaddr *)&servAddr, &len) < 0)
-        {
+        { // 2
             perror("recvfrom");
             // se questo invio fallisce il client torna all'inzio del ciclo
-            printf("Dammi il nome di file, EOF per terminare: ");
+            printf("Inserire  identificatore noleggio, Ctrl+D(Linux) o Ctrl+Z(Windows) per terminare: ");
             continue;
         }
+
+        ris = ntohl(ris);
+
         if (ris < 0)
         {
             printf("Cliente: Errore\n");
+            continue;
         }
-        else
+
+        if (ris == 0)
         {
-            printf("Cliente: risultato ottenuto = %d\n", ris);
+            printf("Cliente: Noleggio non trovato\n");
+            continue;
         }
-        printf("Inserire  ---------- , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
+
+        float costoTotale;
+
+        if (ris >= 1)
+        {
+            printf("Cliente: Noleggio trovato\n");
+            // ricezione della struttura
+            if (recvfrom(sd, &costoTotale, sizeof(costoTotale), 0, (struct sockaddr *)&servAddr, &len) < 0)
+            { // 3
+                perror("recvfrom");
+                printf("Inserire  identificatore noleggio, Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
+                continue;
+            }
+            costoTotale = ntohl(costoTotale);
+            printf("Il costo totale del noleggio %s e' %f\n", identificatore, costoTotale);
+        }
+
+        printf("Inserire identificatore noleggio , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
     }
 
     // CICLO INTERAZIONE

@@ -29,8 +29,7 @@ static int inizializzato = 0;
 
 typedef struct /*da modificare in base alle necessita*/ // struttura per la ricezione di una richiesta UDP
 {
-    char Identificatore[5];
-
+    char Identificatore[6];
     char dataString[WORD_LENGTH];
     int giorni;
     char modello[WORD_LENGTH];
@@ -52,8 +51,7 @@ void inizializza()
     for (int i = 0; i < N; i++)
     {
         strcpy(table[i].Identificatore, "L");
-
-        sprintf(table[i].dataString, "%d/%d/%d", -1, -1, -1);
+        snprintf(table[i].dataString, WORD_LENGTH, "%d/%d/%d", -1, -1, -1);
         table[i].giorni = -1;
         strcpy(table[i].modello, "-1");
         table[i].costo_giornaliero = -1;
@@ -61,40 +59,35 @@ void inizializza()
     }
 
     strcpy(table[0].Identificatore, "ABCDE");
-
-    sprintf(table[0].dataString, "%d/%d/%d", 8, 12, 2023);
+    snprintf(table[0].dataString, WORD_LENGTH, "%d/%d/%d", 8, 12, 2023);
     table[0].giorni = 5;
     strcpy(table[0].modello, "VolkRacetigerSL");
     table[0].costo_giornaliero = 43.5;
     strcpy(table[0].nome_file_foto, "Volkl_Racetiger_SL.jpg");
 
     strcpy(table[1].Identificatore, "12345");
-
-    sprintf(table[1].dataString, "%d/%d/%d", 31, 1, 2024);
+    snprintf(table[1].dataString, WORD_LENGTH, "%d/%d/%d", 31, 1, 2024);
     table[1].giorni = 3;
     strcpy(table[1].modello, "AtomicRedsterX9");
     table[1].costo_giornaliero = 45.5;
     strcpy(table[1].nome_file_foto, "Atomic_Redster_X9.jpg");
 
     strcpy(table[2].Identificatore, "AB123");
-
-    sprintf(table[2].dataString, "%d/%d/%d", 4, 2, 2024);
+    snprintf(table[2].dataString, WORD_LENGTH, "%d/%d/%d", 4, 2, 2024);
     table[2].giorni = 2;
     strcpy(table[2].modello, "RossignolHeroEliteST");
     table[2].costo_giornaliero = 40.5;
     strcpy(table[2].nome_file_foto, "Rossignol_Hero_Elite_ST.jpg");
 
     strcpy(table[3].Identificatore, "CDEFG");
-
-    sprintf(table[3].dataString, "%d/%d/%d", 15, 3, 2024);
+    snprintf(table[3].dataString, WORD_LENGTH, "%d/%d/%d", 15, 3, 2024);
     table[3].giorni = 4;
     strcpy(table[3].modello, "FischerRC4WorldcupSC");
     table[3].costo_giornaliero = 42.5;
     strcpy(table[3].nome_file_foto, "Fischer_RC4_Worldcup_SC.jpg");
 
-    strcpy(table[4].Identificatore, "12345");
-
-    sprintf(table[4].dataString, "%d/%d/%d", 31, 1, 2024);
+    strcpy(table[4].Identificatore, "11111");
+    snprintf(table[4].dataString, WORD_LENGTH, "%d/%d/%d", 31, 1, 2024);
     table[4].giorni = 3;
     strcpy(table[4].modello, "SalomonS/MaxBlast");
     table[4].costo_giornaliero = 44.5;
@@ -124,8 +117,7 @@ int main(int argc, char **argv)
     Noleggio noleggio; /*da modificare in base alle necessita */          // struttura per la ricezione di una richiesta UDP
     const int on = 1;                                                     // variabile per la gestione delle opzioni del socket
     fd_set rset;                                                          // maschera per la gestione dei file descriptor
-
-    inizializza();
+    char identificatore[6];
 
     /*inizializzare i dati necessari ai servizio*/
 
@@ -155,6 +147,9 @@ int main(int argc, char **argv)
             exit(2);
         }
     }
+
+    inizializza(); // inizializzazione dati
+
     /* inizializzazione indirizzo server */
     memset((char *)&servAddr, 0, sizeof(servAddr));
     servAddr.sin_family = AF_INET;
@@ -259,51 +254,81 @@ int main(int argc, char **argv)
         /*
          *   GESTIONE RICHIESTE UDP
          */
-        // if (FD_ISSET(socket_udp, &rset))
-        // {
-        //     printf("[DEBUG] ricevuta una richiesta di UDP \n");
-        //     serv_len = sizeof(struct sockaddr_in);
-        //     /*da modificare in base alle necessita */
-        //     if (recvfrom(socket_udp, &req, sizeof(req), 0, (struct sockaddr *)&cliAddr, &serv_len))
-        //     {
-        //         printf("recvfrom");
-        //         continue;
-        //     }
+        if (FD_ISSET(socket_udp, &rset))
+        {
+            serv_len = sizeof(struct sockaddr_in);
+            printf("[DEBUG] ricevuta una richiesta di UDP \n");
+            /*da modificare in base alle necessita */
 
-        //     printf("[DEBUG] operazione "); //
+            if (recvfrom(socket_udp, &identificatore, sizeof(identificatore), 0, (struct sockaddr *)&cliAddr, &serv_len) < 0)
+            { // 1
+                perror("recvfrom");
+                continue;
+            }
 
-        //     hostUDP = gethostbyaddr((char *)&cliAddr.sin_addr, sizeof(cliAddr.sin_addr), AF_INET);
-        //     if (hostUDP == NULL)
-        //     {
-        //         printf("no info client host \n");
-        //     }
-        //     else
-        //     {
-        //         printf("Operazione richiesta da: %s %i\n", hostUDP->h_name, (unsigned)ntohs(cliAddr.sin_port));
-        //     }
+            printf("[DEBUG] ricevuto identificatore %s\n", identificatore);
 
-        //     /* CODICE DEL SERVER PER RICHIESTE UDP*/
-        //     int esito = 0;
+            printf("[DEBUG] operazione Datagram \n");
 
-        //     // eisto=htonl(num); // conversione in network byte order se necessario.
-        //     /*
-        //      *   // Q: Quando è necessario?
-        //      *   // A: Quando si inviano dati a un client che non è sulla stessa macchina
-        //      *   //    e che potrebbe avere una diversa architettura hardware
-        //      *   //    (es. big endian vs little endian)
-        //      *
-        //      *   // Q: quando invece client e server sono sulla stessa macchina?
-        //      *   // A: in quel caso non è necessario convertire i dati in network byte order
-        //      */
+            hostUDP = gethostbyaddr((char *)&cliAddr.sin_addr, sizeof(cliAddr.sin_addr), AF_INET);
+            if (hostUDP == NULL)
+            {
+                printf("no info client host \n");
+            }
+            else
+            {
+                printf("Operazione richiesta da: %s %i\n", hostUDP->h_name, (unsigned)ntohs(cliAddr.sin_port));
+            }
 
-        //     // mando in dietro il esito
-        //     if (sendto(socket_udp, esito, sizeof(esito), 0, (struct sockaddr *)&cliAddr, serv_len))
-        //     {
-        //         printf("sendto");
-        //         continue;
-        //     }
-        //     printf("[DEBUG] ho mandato l'esito al client\n ");
-        // }
+            /* CODICE DEL SERVER PER RICHIESTE UDP*/
+            int esito = 0;
+
+            for (int i = 0; i < N; i++)
+            {
+                printf("[DEBUG] %s \n", table[i].Identificatore);
+                if (strcmp(table[i].Identificatore, identificatore) == 0)
+                {
+                    esito = 1;
+                    break;
+                }
+            }
+
+            float costoTotale = 0;
+
+            if (esito >= 1)
+            {
+                printf("[DEBUG] esito positivo\n");
+                printf("[DEBUG] invio esito al client\n");
+
+                if (sendto(socket_udp, &esito, sizeof(esito), 0, (struct sockaddr *)&cliAddr, serv_len) < 0)
+                { // 2
+                    perror("sendto");
+                    continue;
+                }
+
+                for (int i = 0; i < N; i++)
+                {
+                    printf("[DEBUG] %s \n", table[i].Identificatore);
+                    if (strcmp(table[i].Identificatore, identificatore) == 0)
+                    {
+                        costoTotale += table[i].costo_giornaliero * table[i].giorni;
+                    }
+                }
+            }
+            else
+            {
+                printf("[DEBUG] esito negativo\n");
+            }
+
+            costoTotale = htonl(costoTotale);
+
+            if (sendto(socket_udp, &costoTotale, sizeof(costoTotale), 0, (struct sockaddr *)&cliAddr, serv_len))
+            { // 3
+                printf("sendto");
+                continue;
+            }
+            printf("[DEBUG] ho mandato l'costoTotale al client\n ");
+        }
 
         /*
          *  GESTIONE RICHIESTE TCP
