@@ -8,8 +8,9 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-#define LINE_LENGTH 256
-#define MAX_INPUT 128
+#define WORD_LENGTH 64  // lunghezza massima di una parola
+#define MAX_INPUT 128   // lunghezza massima di un input
+#define LINE_LENGTH 256 // lunghezza massima di una linea
 
 int main(int argc, char const *argv[])
 {
