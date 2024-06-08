@@ -61,27 +61,28 @@ public class ServerImpl extends UnicastRemoteObject implements RMI_interfaceFile
 		}
 	}
 
-	@Override
-	public int elimina_sci(String id) throws RemoteException { // Implementazione del metodo dichiarato in
-																// RMI_interfaceFile
-		int esito = -1;
-		System.out.println("[DEBUG] elimina ");
+	/**
+	 * Implementazione dei metodi dichiarati in RMI_interfaceFile
+	 */
 
-		if (id == null)
+	@Override
+	public /*<T> metodo 1*/(/*<T> param */) throws RemoteException { // Implementazione del metodo 1 dichiarato in RMI_interfaceFile
+
+		int esito = -1;
+		System.out.println("[DEBUG] /*<T> metodo 1*/ ");
+
+		if (id == null){
 			return esito;
+		}
 
 		return esito;
 	}
 
 	@Override
-	public int noleggia_sci(String id, int giorno, int mese, int anno, int giorniNol) throws RemoteException { // implementazione
-																												// del
-																												// metodo
-																												// dichiarato
-																												// in
-																												// RMI_interfaceFile
+	public  /*<T> metodo 1*/(/*<T> param */) throws RemoteException {  // Implementazione del metodo 2 dichiarato in RMI_interfaceFile
+		
 		int esito = -1;
-		System.out.println("[DEBUG] noleggia scii");
+		System.out.println("[DEBUG] /*<T> metodo 1*/ ");
 
 		return esito;
 	}
