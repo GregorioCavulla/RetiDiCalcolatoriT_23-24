@@ -39,25 +39,23 @@ class Client {
 			RMI_interfaceFile serverRMI = (RMI_interfaceFile) Naming.lookup(completeName);
 			System.out.println("Client RMI: Servizio \"" + serviceName + "\" connesso");
 
+			/**
+			 * Inizio corpo Client
+			 */
 			System.out.println("\nRichieste di servizio fino a fine file");
 			String service;
-			System.out.println("Servizio (N=, E=): ");
+			System.out.println("Servizio (1= ------ , 2= ------ ), EOF per terminare: ");
 			while ((service = stdIn.readLine()) != null) {
-				// N
-				if (service.equals("N")) { // gestione servizio 1
+				// 1
+				if (service.equals("1")) { // gestione servizio 1
 					try {
-						System.out.println("id? ");
-						String id = stdIn.readLine();
-						System.out.println("giorno? ");
-						int giorno = Integer.parseInt(stdIn.readLine());
-						System.out.println("mese? ");
-						int mese = Integer.parseInt(stdIn.readLine());
-						System.out.println("anno? ");
-						int anno = Integer.parseInt(stdIn.readLine());
-						System.out.println("quanti giorni? ");
-						int durata = Integer.parseInt(stdIn.readLine());
+						System.out.println("/*param*/? "); //richiesta parametro
+						String /*param*/ = stdIn.readLine(); //acquisizione parametro
+						/*
+						 * eventuali altre richieste di parametri da passare al metodo remoto
+						 */
 						try {
-							int esito = serverRMI.noleggia_sci(id, giorno, mese, anno, durata);
+							int esito = serverRMI./*metodo 1*/(/*params*/);
 							System.out.println("esito " + esito);
 						} catch (RemoteException re) {
 							System.out.println("Errore remoto: " + re.toString());
@@ -66,28 +64,25 @@ class Client {
 						System.out.println("errore di input");
 					}
 				}
-				// E
-				else if (service.equals("E")) { // gestione servizio 2
+				// 2
+				else if (service.equals("2")) { // gestione servizio 2
 
-					String id;
-					System.out.println("id? ");
-					id = stdIn.readLine();
+					System.out.println("/*param*/? "); //richiesta parametro
+					String /*param*/ = stdIn.readLine(); //acquisizione parametro
 
 					int res = 0;
 					try {
-						res = serverRMI.elimina_sci(id);
+						res = serverRMI./*metodo 2*/(id);
 						System.out.println("eisto " + res + "!\n");
 					} catch (RemoteException re) {
 						System.out.println("Errore remoto: " + re.toString());
 					}
 				}
-
-				// NIENTE
-				else
+				else{ //servizio non disponibile
 					System.out.println("Servizio non disponibile");
-
-				System.out.println("Servizio (N=   , E=   ): ");
-			} // !EOF
+				}
+					System.out.println("Servizio (1= ------ , 2= ------ ), EOF per terminare: ");
+				} // !EOF
 
 		} catch (Exception e) {
 			System.err.println("ClientRMI: " + e.getMessage());

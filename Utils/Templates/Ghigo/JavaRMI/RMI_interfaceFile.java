@@ -11,12 +11,12 @@ import java.rmi.RemoteException;
 public interface RMI_interfaceFile extends Remote {
 
 	/**
-	 * 
+	 * rinomina metodo 1, con relativi parametri
 	 **/
-	public int elimina_sci(String id) throws RemoteException;
+	public /*<T> questo*/(/*<T> questo*/) throws RemoteException;
 
 	/**
-	 *
+	 * rinomina metodo 2, con relativi parametri
 	 **/
-	public int noleggia_sci(String id, int giorno, int mese, int anno, int giorniNol) throws RemoteException;
+	public /*<T> questo*/(/*<T> questo*/) throws RemoteException;
 }
