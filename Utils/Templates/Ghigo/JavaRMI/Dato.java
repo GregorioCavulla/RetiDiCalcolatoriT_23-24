@@ -1,7 +1,12 @@
 package RMI;
 
+/**
+ * Dato.java
+ * classe per la gestione dei dati da inviare al server RMI in caso di strutture dati complesse (e.g. Noleggio sci/Prenotazioni auto)
+ */
 
 public class Dato {
+    // Attributi
     private String id;
     private String tipo;
     private String luogo;
@@ -10,7 +15,7 @@ public class Dato {
     private String nomeFile;
 
 
-    public Dato (){
+    public Dato (){ // costruttore con init a valori di default
         id="L";
         tipo="L";
         luogo="L";
@@ -23,7 +28,7 @@ public class Dato {
     }
     
 
-    public Dato(String id, String tipo, String luogo, int giorno, int mese, int anno, int x, String nomeFile) {
+    public Dato(String id, String tipo, String luogo, int giorno, int mese, int anno, int x, String nomeFile) { // costruttore con parametri in input
         this.id = id;
         this.tipo = tipo;
         this.luogo = luogo;
