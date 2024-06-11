@@ -1,4 +1,3 @@
-package RMI;
 
 /**
  * Interfaccia remota di servizio

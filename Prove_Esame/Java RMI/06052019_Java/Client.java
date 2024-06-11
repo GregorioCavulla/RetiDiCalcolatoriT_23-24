@@ -1,4 +1,3 @@
-package RMI;
 
 /**
  * Client.java
