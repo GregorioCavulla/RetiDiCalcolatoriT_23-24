@@ -10,7 +10,7 @@ import java.rmi.server.UnicastRemoteObject;
 import java.io.*;
 import java.util.*;
 
-public class RMI_Server extends UnicastRemoteObject implements RMI_interfaceFile { // estende UnicastRemoteObject per
+public class RMI_Server extends UnicastRemoteObject implements RMI_InterfaceFile { // estende UnicastRemoteObject per
 																					// rendere l'oggetto remoto,
 																					// implementa l'interfaccia
 																					// RMI_interfaceFile
@@ -83,10 +83,10 @@ public class RMI_Server extends UnicastRemoteObject implements RMI_interfaceFile
 	}
 
 	@Override
-	public  /*<T> metodo 1*/(/*<T> param */) throws RemoteException {  // Implementazione del metodo 2 dichiarato in RMI_interfaceFile
+	public  /*<T> metodo 2*/(/*<T> param */) throws RemoteException {  // Implementazione del metodo 2 dichiarato in RMI_interfaceFile
 		
 		int esito = -1;
-		System.out.println("[DEBUG] /*<T> metodo 1*/ ");
+		System.out.println("[DEBUG] /*<T> metodo 2*/ ");
 
 		return esito;
 	}
