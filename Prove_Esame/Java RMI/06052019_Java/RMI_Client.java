@@ -74,7 +74,10 @@ class RMI_Client {
 						 */
 						try {
 							risposta = serverRMI.lista_file(dirName);
-							System.out.println("file trovati: " + risposta + "\n");
+							System.out.println("file trovati: \n");
+							for (String s : risposta) {
+								System.out.println(s);
+							}
 						} catch (RemoteException re) {
 							System.out.println("Errore remoto: " + re.toString());
 						}
