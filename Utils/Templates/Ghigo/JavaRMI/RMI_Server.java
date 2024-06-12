@@ -21,6 +21,9 @@ public class RMI_Server extends UnicastRemoteObject implements RMI_InterfaceFile
 	public RMI_Server() throws RemoteException {
 		super();
 		// System.out.println("[DEBUG] inizializzato");
+		// for (Dato d : dati) {
+		// 	System.out.println(d.toString());
+		// }
 	}
 
 	public static void main(String[] args) {
@@ -79,6 +82,10 @@ public class RMI_Server extends UnicastRemoteObject implements RMI_InterfaceFile
 			return esito;
 		}
 
+		// for (Dato d : dati) {
+		// 	System.out.println(d.toString());
+		// }
+
 		return esito;
 	}
 
@@ -87,6 +94,10 @@ public class RMI_Server extends UnicastRemoteObject implements RMI_InterfaceFile
 		
 		int esito = -1;
 		System.out.println("[DEBUG] /*<T> metodo 2*/ ");
+
+		// for (Dato d : dati) {
+		// 	System.out.println(d.toString());
+		// }
 
 		return esito;
 	}
