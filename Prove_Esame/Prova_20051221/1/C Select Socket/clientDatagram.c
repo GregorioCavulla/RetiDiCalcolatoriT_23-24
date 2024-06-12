@@ -19,9 +19,10 @@ typedef struct /*da modificare in base alle necessita */ // struttura per la ric
 
 int main(int argc, char const *argv[])
 {
-    struct hostent *host;                                 // struttura per la gestione degli host, contiene informazioni come l'indirizzo IP dell'host e il suo nome
-    struct sockaddr_in clientAddr, servAddr;              // struttura per la gestione degli indirizzi, contiene informazioni come l'indirizzo IP e la porta, sia del client che del server
-    int port, sd, len, result, nread;                     // variabili per la gestione della porta, del socket, della lunghezza dell'indirizzo, del risultato e del numero di caratteri letti
+    struct hostent *host;                    // struttura per la gestione degli host, contiene informazioni come l'indirizzo IP dell'host e il suo nome
+    struct sockaddr_in clientAddr, servAddr; // struttura per la gestione degli indirizzi, contiene informazioni come l'indirizzo IP e la porta, sia del client che del server
+    int port, sd, len, result, nread, ris;   // variabili per la gestione della porta, del socket, della lunghezza dell'indirizzo, del risultato e del numero di caratteri letti
+
     ReqUDP req; /*da modificare in base alle necessita */ // struttura per la richiesta UDP al server
 
     /* CONTROLLO ARGOMENTI ---------------------------------- */
@@ -36,6 +37,7 @@ int main(int argc, char const *argv[])
     clientAddr.sin_family = AF_INET;
     clientAddr.sin_addr.s_addr = INADDR_ANY;
     clientAddr.sin_port = 0;
+
     // INIZIALIZZAZIONE INDIRIZZO SERVER
     memset((char *)&servAddr, 0, sizeof(struct sockaddr_in));
     servAddr.sin_family = AF_INET;
@@ -90,16 +92,18 @@ int main(int argc, char const *argv[])
     }
     printf("[DEBUG] %s: bind socket ok, alla porta %i\n", argv[0], clientAddr.sin_port);
 
-    // CODICE DEL CLIENTE
+    /**
+     * CORPO DEL CLIENT:
+     */
+
     printf("Inserire  ---------- , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
 
-    // CICLO INTERAZIONE
-    int ris;
     while (gets(req.fileName)) // dato da input, usato per la richiesta al server
     {
         // invio richiesta una struttura di 2 dati
         len = sizeof(servAddr);
 
+        // invio la richiesta al server
         if (sendto(sd, &req, sizeof(req), 0, (struct sockaddr *)&servAddr, len) < 0) // invio la richiesta al server
         {
             perror("sendto");
@@ -108,14 +112,17 @@ int main(int argc, char const *argv[])
             continue;
         }
 
-        /* ricezione del risultato */
+        // ricevo il risultato
         if (recvfrom(sd, &ris, sizeof(ris), 0, (struct sockaddr *)&servAddr, &len) < 0) // ricevo il risultato dal server
         {
             perror("recvfrom");
             // se questo invio fallisce il client torna all'inzio del ciclo
-            printf("Dammi il nome di file, EOF per terminare: ");
+            printf("Inserire  ---------- , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
             continue;
         }
+
+        ris = ntohl(ris); // converto il risultato in formato host
+
         if (ris < 0)
         {
             printf("Cliente: Errore\n");

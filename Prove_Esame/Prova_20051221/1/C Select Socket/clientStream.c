@@ -8,16 +8,22 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-#define LINE_LENGTH 256
-#define MAX_INPUT 128
+#define WORD_LENGTH 64  // lunghezza massima di una parola
+#define MAX_INPUT 128   // lunghezza massima di un input
+#define LINE_LENGTH 256 // lunghezza massima di una linea
 
 int main(int argc, char const *argv[])
 {
-
+    /* inizializzazioni variabili per la comunicazione */
     struct hostent *host;
     struct sockaddr_in servAddr;
-    int port, sd,nread;
-    char datoInput[MAX_INPUT],datoOutput[MAX_INPUT];
+    int port, sd, nread;
+    char datoInput[MAX_INPUT], datoOutput[MAX_INPUT];
+
+    // inizializzazioni variabili
+    int ris, fd, numberOfFiles;
+    char dirName[WORD_LENGTH], bufferChar, fileName[WORD_LENGTH], response;
+    long fileLength;
 
     /* CONTROLLO ARGOMENTI ---------------------------------- */
     if (argc != 3)
@@ -31,10 +37,8 @@ int main(int argc, char const *argv[])
     memset((char *)&servAddr, 0, sizeof(struct sockaddr_in));
     servAddr.sin_family = AF_INET;
     host = gethostbyname(argv[1]);
-  
 
-     //VERIFICA INTERO porta
-
+    // VERIFICA INTERO porta
     nread = 0;
     while (argv[2][nread] != '\0')
     {
@@ -47,13 +51,13 @@ int main(int argc, char const *argv[])
         nread++;
     }
     port = atoi(argv[2]);
-    //Verifico port
+    // Verifico port
     if (port < 1024 || port > 65535)
     {
         printf("%s = porta scorretta...\n", argv[2]);
         exit(2);
     }
-    //Verifico host
+    // Verifico host
     if (host == NULL)
     {
         printf("%s not found in /etc/hosts\n", argv[1]);
@@ -65,7 +69,7 @@ int main(int argc, char const *argv[])
         servAddr.sin_port = htons(port);
     }
 
-    // CREAZIONE SOCKET 
+    // CREAZIONE SOCKET
     sd = socket(AF_INET, SOCK_STREAM, 0);
     if (sd < 0)
     {
@@ -73,7 +77,7 @@ int main(int argc, char const *argv[])
         exit(3);
     }
     printf("[DEBUG] Creata la socket sd=%d\n", sd);
-    //CONNECT e BIND IMPLICITA
+    // CONNECT e BIND IMPLICITA
     if (connect(sd, (struct sockaddr *)&servAddr, sizeof(struct sockaddr)) < 0)
     {
         perror("[ERR] Errore in connect");
@@ -81,21 +85,28 @@ int main(int argc, char const *argv[])
     }
     printf("[DEBUG] Connect ok\n");
 
-    // CICLO INTERAZIONE
-    int ris;
-    while (scanf("%s", datoInput) ==1)
+    /**
+     * CICLO INTERAZIONE
+     */
+
+    printf("Inserire  ---------- , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
+
+    while (gets(datoInput))
     {
 
-        //
+        // invio richiesta
+        if (write(sd, datoInput, strlen(datoInput)) < 0)
+        {
+            perror("write");
+            printf("Inserire  ---------- , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
+        }
 
-        //
-        //invio richiesta
-        write(sd,datoInput,strlen(datoInput));
-        
-        //ricezione risultato
-        read(sd,&datoOutput,sizeof(datoOutput));
-        
-
+        // ricezione risultato
+        if (read(sd, &datoOutput, sizeof(datoOutput)) < 0)
+        {
+            perror("read");
+            printf("Inserire  ---------- , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
+        }
     }
 
     // FINE CICLO INTERAZIONE

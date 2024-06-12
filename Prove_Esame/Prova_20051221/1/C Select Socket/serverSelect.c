@@ -17,10 +17,10 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#define BUF_LEN 256
 #define QUEUE_TCP 10240
-#define LINE_LENGTH 128
-#define WORD_LENGTH 128
+#define LINE_LENGTH 256
+#define WORD_LENGTH 64
+#define MAX_FILES 255
 
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
@@ -30,22 +30,33 @@ void gestore(int signo)
     printf("esecuzione gestore di SIGCHLD \n");
     wait(&stato);
 }
-typedef struct
-{
-    char dato1[WORD_LENGTH];
-    char dato2[WORD_LENGTH];
-} ReqUDP;
+
+// typedef struct
+// {
+//     char dato1[WORD_LENGTH];
+//     char dato2[WORD_LENGTH];
+// } reqUDP;
 
 int main(int argc, char **argv)
 {
+    /* inizializzazione dati per la comunicazione */
+
     int socket_udp, socket_tcp, socket_conn, port, nfds, nread, serv_len;
     struct hostent *hostUDP, *hostTCP;
     struct sockaddr_in cliAddr, servAddr;
-    char buf[BUF_LEN]; ////da modificare
-    ReqUDP req;        // da modificare
     const int on = 1;
     fd_set rset;
-    // TODO init data
+
+    // UDP
+    char udpFileName[WORD_LENGTH];   // ...
+    int rispostaUdp = 0, udpFile_fd; // ...
+    long udpFileLength;              // ...
+    // TCP
+    DIR *dir;
+    struct dirent *file;
+    char dirName[WORD_LENGTH];       // ...
+    int rispostaTcp = 0, tcpFile_fd; // ...
+    long tcpFileLength;              // ...
 
     /* CONTROLLO ARGOMENTI ---------------------------------- */
     if (argc != 2)
@@ -73,11 +84,13 @@ int main(int argc, char **argv)
             exit(2);
         }
     }
+
     /* inizializzazione indirizzo server */
     memset((char *)&servAddr, 0, sizeof(servAddr));
     servAddr.sin_family = AF_INET;
     servAddr.sin_addr.s_addr = INADDR_ANY;
     servAddr.sin_port = htons(port);
+
     // creazione socket d ascolto TCP
     socket_tcp = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_tcp < 0)
@@ -86,7 +99,6 @@ int main(int argc, char **argv)
         exit(3);
     }
     printf("[DEBUG] creata socket di ascolto TCP, fd=%d \n", socket_tcp);
-
     socket_tcp = socket(AF_INET, SOCK_STREAM, 0);
     if (setsockopt(socket_tcp, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
     {
@@ -115,7 +127,6 @@ int main(int argc, char **argv)
         exit(3);
     }
     printf("[DEBUG] creata socket di ascolto UDP, fd=%d \n", socket_udp);
-
     if (setsockopt(socket_udp, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
     {
         printf("errore di opzione socket di ascolto UDP");
@@ -140,8 +151,8 @@ int main(int argc, char **argv)
     printf("[DEBUG] Server: mi metto in attesa\n");
     for (;;)
     {
-        FD_SET(socket_udp, &rset);
-        FD_SET(socket_tcp, &rset);
+        FD_SET(socket_udp, &rset); // setto il bit del file descriptor
+        FD_SET(socket_tcp, &rset); // setto il bit del file descriptor
         if ((nread = select(nfds, &rset, NULL, NULL, NULL)) < 0)
         {
             if (errno == EINTR)
@@ -155,19 +166,23 @@ int main(int argc, char **argv)
             }
         }
 
-        // gestione richieste UDP
+        /**
+         * Gestione richieste UDP
+         */
+
         if (FD_ISSET(socket_udp, &rset))
         {
-            printf("[DEBUG] ricevuta una richiesta di UDP \n");
             serv_len = sizeof(struct sockaddr_in);
-            // da modificare
-            if (recvfrom(socket_udp, &req, sizeof(req), 0, (struct sockaddr *)&cliAddr, &serv_len))
+            printf("[DEBUG] ricevuta una richiesta di UDP \n");
+
+            /* DA MODIFICARE COSA VIENE RICEVUTO */
+            if (recvfrom(socket_udp, & /*questo*/, sizeof(/*questo*/), 0, (struct sockaddr *)&cliAddr, &serv_len))
             {
                 printf("recvfrom");
                 continue;
             }
 
-            printf("[DEBUG] operazione "); //
+            printf("[DEBUG] operazione datagram\n");
 
             hostUDP = gethostbyaddr((char *)&cliAddr.sin_addr, sizeof(cliAddr.sin_addr), AF_INET);
             if (hostUDP == NULL)
@@ -178,24 +193,31 @@ int main(int argc, char **argv)
             {
                 printf("Operazione richiesta da: %s %i\n", hostUDP->h_name, (unsigned)ntohs(cliAddr.sin_port));
             }
-            /* CODICE DEL SERVER*/
-            int esito = 0;
 
-            // eisto=htonl(num);
-            // mando in dietro il esito
-            if (sendto(socket_udp, esito, sizeof(esito), 0, (struct sockaddr *)&cliAddr, serv_len))
+            /**
+             * CODICE DEL SERVER
+             */
+
+            rispostaUdp = htonl(rispostaUdp);
+
+            if (sendto(socket_udp, rispostaUdp, sizeof(rispostaUdp), 0, (struct sockaddr *)&cliAddr, serv_len))
             {
                 printf("sendto");
                 continue;
             }
-            printf("[DEBUG] ho mandato l'esito al client\n ");
+            printf("[DEBUG] ho mandato rispostaUdp (%d) al client\n ", rispostaUdp);
         }
 
-        // Gestione richieste TCP
+        /**
+         *Gestione richieste TCP
+         */
+
         if (FD_ISSET(socket_tcp, &rset))
         {
             serv_len = sizeof(struct sockaddr_in);
             printf("[DEBUG] ho ricevuto una richiesta di TCP\n");
+
+            // accetto la connessione
             if ((socket_conn = accept(socket_tcp, (struct sockaddr *)&cliAddr, &serv_len)) < 0)
             {
                 if (errno == EINTR)
@@ -208,6 +230,8 @@ int main(int argc, char **argv)
             }
             hostTCP = gethostbyaddr((char *)&cliAddr.sin_addr, sizeof(cliAddr.sin_addr), AF_INET);
 
+            printf("[DEBUG] operazione stream\n");
+
             if (hostTCP == NULL)
             {
                 printf("no info client host\n");
@@ -215,20 +239,31 @@ int main(int argc, char **argv)
                 exit(6);
             }
             else
+            {
                 printf("[DEBUG ]Server (figlio): host client e' %s \n", hostTCP->h_name);
-            // processo figlio che gestisce la richiesta
+            }
+
+            /**
+             * Il server TCP crea un processo figlio per gestire la richiesta del client
+             */
+
             if (fork() == 0)
             {
                 close(socket_tcp);
                 printf("[DEBUG]Server (figlio): eseguo pid=%i\n", getpid());
-                /* server code */
-                int esito;
-                int dato;
-                while ((nread = read(socket_conn, &dato, sizeof(dato))) > 0)
+
+                /**
+                 * CODICE DEL SERVER
+                 */
+
+                /* DA MODIFICARE COSA VIENE RICEVUTO */
+                while ((nread = read(socket_conn, & /*questo*/, sizeof(/*questo*/))) > 0)
                 {
                 }
-                write(socket_conn, &esito, sizeof(esito));
-                // write(socket_conn, &zero, 1); invio di un zero binario
+
+                // restituisco
+                write(socket_conn, &rispostaTcp, sizeof(rispostaTcp));
+                printf("[DEBUG] ho mandato rispostaTcp (%d) al client\n ", rispostaTcp);
 
                 // chiusura di socket connessione
                 shutdown(socket_conn, SHUT_RD);
