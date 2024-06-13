@@ -5,7 +5,7 @@
  * dati complesse (e.g. Noleggio sci/Prenotazioni auto)
  */
 
-public class Dato {
+public class Dato implements java.io.Serializable {
     // Attributi
     private String nome;
     private String stato;

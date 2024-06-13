@@ -126,14 +126,45 @@ public class RMI_Server extends UnicastRemoteObject implements RMI_InterfaceFile
 	public Dato[] elimina_utente(String nomeUtente) throws RemoteException { // Implementazione del metodo 2 dichiarato
 																				// in RMI_interfaceFile
 
-		Dato temp[dati.length];
-		System.out.println("[DEBUG] /*<T> metodo 2*/ ");
+		Dato[] temp = new Dato[dati.length];
+		int i = 0;
+		System.out.println("[DEBUG] elimina_utente");
 
 		for (Dato d : dati) {
-		System.out.println(d.toString());
+			boolean modified = false;
+			if (d.getUtente1().equals(nomeUtente)) {
+				d.setUtente1("L");
+				modified = true;
+			}
+			if (d.getUtente2().equals(nomeUtente)) {
+				d.setUtente2("L");
+				modified = true;
+			}
+			if (d.getUtente3().equals(nomeUtente)) {
+				d.setUtente3("L");
+				modified = true;
+			}
+			if (d.getUtente4().equals(nomeUtente)) {
+				d.setUtente4("L");
+				modified = true;
+			}
+			if (d.getUtente5().equals(nomeUtente)) {
+				d.setUtente5("L");
+				modified = true;
+			}
+			if (modified) {
+				temp[i++] = d;
+			}
 		}
 
-		return esito;
+		Dato[] esito = new Dato[i];
+		System.arraycopy(temp, 0, esito, 0, i);
+
+		for (Dato d : dati) {
+			System.out.println(d.toString());
+		}
+
+		return i == 0 ? null : esito;
 	}
 
 }

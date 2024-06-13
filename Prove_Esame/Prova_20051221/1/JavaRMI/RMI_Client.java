@@ -35,7 +35,7 @@ class RMI_Client {
 
 		System.out.println("[DEBUG] check Parametri passato");
 		System.out.println("Invio richieste a " + registryHost + " per il servizio di nome " + serviceName);
- 
+
 		// CONNESSIONE AL SERVIZIO RMI REMOTO
 		try {
 			String completeName = "//" + registryHost + ":" + registryPort + "/" + serviceName;
@@ -48,7 +48,7 @@ class RMI_Client {
 			System.out.println("\nRichieste di servizio fino a fine file\n");
 
 			String service;
-			System.out.println("Servizio (1= ----- , 2= ------ ), EOF per terminare: ");
+			System.out.println("Servizio (1=aggiungi_stanza, 2=elimina_utente), EOF per terminare: ");
 
 			while ((service = stdIn.readLine()) != null) {
 				// 1
@@ -57,18 +57,28 @@ class RMI_Client {
 					 * INIZIALIZZO I PARAMETRI DA PASSARE E RICEVERE DAL METODO REMOTO
 					 */
 
-					/*<T> param */
+					String nomeStanza;
+					char tipoComunicazione;
 
-					/*<T> */ risposta;
+					boolean risposta;
 
 					try {
-						System.out.println("/*param*/? "); //richiesta parametro
-						/*param*/ = stdIn.readLine(); //acquisizione parametro
+						System.out.println("nomeStanza? "); // richiesta parametro
+						nomeStanza = stdIn.readLine(); // acquisizione parametro
+
+						System.out.println("tipoComunicazione? "); // richiesta parametro
+						tipoComunicazione = stdIn.readLine().charAt(0); // acquisizione parametro
+
+						if (tipoComunicazione != 'M' && tipoComunicazione != 'P') {
+							System.out.println("Errore, il tipo di comunicazione può essere M o P");
+							continue;
+						}
+
 						/*
 						 * eventuali altre richieste di parametri da passare al metodo remoto
 						 */
 						try {
-							risposta = serverRMI. ----- (/*params*/);
+							risposta = serverRMI.aggiungi_stanza(nomeStanza, tipoComunicazione);
 							System.out.println("esito " + risposta + "!\n");
 						} catch (RemoteException re) {
 							System.out.println("Errore remoto: " + re.toString());
@@ -76,49 +86,54 @@ class RMI_Client {
 					} catch (NumberFormatException e) {
 						System.out.println("errore di input");
 					}
-				}// fine servizio 1
+				} // fine servizio 1
 
 				else if (service.equals("2")) { // gestione servizio 2
 					/**
 					 * INIZIALIZZO I PARAMETRI DA PASSARE E RICEVERE DAL METODO REMOTO
 					 */
 
-					/*<T> param */
+					String nomeUtente;
 
-					/*<T> */ risposta;
+					Dato risposta[];
 
-					try{
-						//richiesta parametro
-						System.out.println("/*param*/? "); //richiesta parametro
-						/*param*/ = stdIn.readLine(); //acquisizione parametro
+					try {
+						// richiesta parametro
+						System.out.println("nomeUtente? "); // richiesta parametro
+						nomeUtente = stdIn.readLine(); // acquisizione parametro
 						/*
 						 * eventuali altre richieste di parametri da passare al metodo remoto
 						 */
 						try {
-							//chiamata al metodo remoto
-							risposta = serverRMI. ------ (/*params*/);
-							System.out.println("eisto " + risposta + "!\n");
+							// chiamata al metodo remoto
+							risposta = serverRMI.elimina_utente(nomeUtente);
+							if (risposta != null && risposta.length > 0) {
+								for (Dato d : risposta) {
+									System.out.println(d.toString() + "\n");
+								}
+							} else {
+								System.out.println("[ERRORE]: non ho trovato prenotazioni compliant");
+							}
 						} catch (RemoteException re) {
 							System.out.println("Errore remoto: " + re.toString());
 						}
-					} catch (NumberFormatException e) { //per eventuali parsing dell'input
+					} catch (NumberFormatException e) { // per eventuali parsing dell'input
 						System.out.println("errore di input");
 					}
-				}// fine servizio 2
+				} // fine servizio 2
 
-				else{ //servizio non disponibile
+				else { // servizio non disponibile
 					System.out.println("Servizio non disponibile");
 				}
-					System.out.println("Servizio (1= ----- , 2= ------ ), EOF per terminare: ");
-				}//while !EOF
+				System.out.println("Servizio (1=aggiungi_stanza, 2=elimina_utente), EOF per terminare: ");
+			} // while !EOF
 
-		}catch(
+		} catch (
 
-	Exception e)
-	{
-		System.err.println("ClientRMI: " + e.getMessage());
-		e.printStackTrace();
-		System.exit(1);
+		Exception e) {
+			System.err.println("ClientRMI: " + e.getMessage());
+			e.printStackTrace();
+			System.exit(1);
+		}
 	}
-}
 }
