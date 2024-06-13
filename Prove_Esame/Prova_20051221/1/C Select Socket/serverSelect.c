@@ -21,8 +21,60 @@
 #define LINE_LENGTH 256
 #define WORD_LENGTH 64
 #define MAX_FILES 255
+#define N 10
 
 #define max(a, b) ((a) > (b) ? (a) : (b))
+
+static int inizializzato = 0;
+
+typedef struct
+{
+    char nome[WORD_LENGTH];
+    char stato[3];
+    char utente1[WORD_LENGTH];
+    char utente2[WORD_LENGTH];
+    char utente3[WORD_LENGTH];
+    char utente4[WORD_LENGTH];
+    char utente5[WORD_LENGTH];
+
+} Stanza;
+
+static Stanza table[N];
+
+void inizializza()
+{
+    if (inizializzato == 1)
+    {
+        return;
+    }
+
+    inizializzato = 1;
+    for (int i = 0; i < N; i++)
+    {
+        strcpy(table[i].nome, "L");
+        strcpy(table[i].stato, "L");
+        strcpy(table[i].utente1, "L");
+        strcpy(table[i].utente2, "L");
+        strcpy(table[i].utente3, "L");
+        strcpy(table[i].utente4, "L");
+        strcpy(table[i].utente5, "L");
+    }
+
+    strcpy(table[0].nome, "Stanza1");
+    strcpy(table[0].stato, "P");
+    strcpy(table[0].utente1, "Pippo");
+    strcpy(table[0].utente2, "Pluto");
+    strcpy(table[0].utente3, "Topolino");
+    strcpy(table[0].utente4, "Minnie");
+    strcpy(table[0].utente5, "Paperino");
+
+    printf("inizializzato\n");
+
+    for (int i = 0; i < N; i++)
+    {
+        printf("|%s|%s|%s|%s|%s|%s|%s|\n", table[i].nome, table[i].stato, table[i].utente1, table[i].utente2, table[i].utente3, table[i].utente4, table[i].utente5);
+    }
+}
 
 void gestore(int signo)
 {
@@ -30,12 +82,6 @@ void gestore(int signo)
     printf("esecuzione gestore di SIGCHLD \n");
     wait(&stato);
 }
-
-// typedef struct
-// {
-//     char dato1[WORD_LENGTH];
-//     char dato2[WORD_LENGTH];
-// } reqUDP;
 
 int main(int argc, char **argv)
 {
@@ -54,9 +100,9 @@ int main(int argc, char **argv)
     // TCP
     DIR *dir;
     struct dirent *file;
-    char dirName[WORD_LENGTH];       // ...
-    int rispostaTcp = 0, tcpFile_fd; // ...
-    long tcpFileLength;              // ...
+    char dirName[WORD_LENGTH]; // ...
+    int tcpFile_fd;            // ...
+    long tcpFileLength;        // ...
 
     /* CONTROLLO ARGOMENTI ---------------------------------- */
     if (argc != 2)
@@ -84,6 +130,8 @@ int main(int argc, char **argv)
             exit(2);
         }
     }
+
+    inizializza();
 
     /* inizializzazione indirizzo server */
     memset((char *)&servAddr, 0, sizeof(servAddr));
@@ -174,11 +222,12 @@ int main(int argc, char **argv)
         {
             serv_len = sizeof(struct sockaddr_in);
             printf("[DEBUG] ricevuta una richiesta di UDP \n");
+            char nomeStanza[WORD_LENGTH];
 
             /* DA MODIFICARE COSA VIENE RICEVUTO */
-            if (recvfrom(socket_udp, & /*questo*/, sizeof(/*questo*/), 0, (struct sockaddr *)&cliAddr, &serv_len))
+            if ((nread = recvfrom(socket_udp, &nomeStanza, sizeof(nomeStanza), 0, (struct sockaddr *)&cliAddr, &serv_len)) < 0)
             {
-                printf("recvfrom");
+                perror("recvfrom");
                 continue;
             }
 
@@ -198,11 +247,46 @@ int main(int argc, char **argv)
              * CODICE DEL SERVER
              */
 
+            rispostaUdp = -1;
+
+            for (int i = 0; i < sizeof(table) / sizeof(table[0]); i++)
+            {
+                if (strcmp(table[i].nome, nomeStanza) == 0)
+                {
+                    if (strstr(table[i].stato, "S") == NULL)
+                    {
+                        char stato_temp[LINE_LENGTH];
+
+                        // Ensure stato_temp is empty before concatenation
+                        memset(stato_temp, 0, LINE_LENGTH);
+
+                        // Concatenate the strings
+                        strcat(stato_temp, "S");
+                        strcat(stato_temp, table[i].stato);
+
+                        // Copy back the result into table[i].stato
+                        strncpy(table[i].stato, stato_temp, LINE_LENGTH - 1);
+                        table[i].stato[LINE_LENGTH - 1] = '\0'; // Ensure null termination
+
+                        rispostaUdp = 1;
+                    }
+                    else
+                    {
+                        rispostaUdp = 0;
+                    }
+                }
+            }
+
+            for (int i = 0; i < N; i++)
+            {
+                printf("|%s|%s|%s|%s|%s|%s|%s|\n", table[i].nome, table[i].stato, table[i].utente1, table[i].utente2, table[i].utente3, table[i].utente4, table[i].utente5);
+            }
+
             rispostaUdp = htonl(rispostaUdp);
 
-            if (sendto(socket_udp, rispostaUdp, sizeof(rispostaUdp), 0, (struct sockaddr *)&cliAddr, serv_len))
+            if (sendto(socket_udp, &rispostaUdp, sizeof(rispostaUdp), 0, (struct sockaddr *)&cliAddr, serv_len) < 0)
             {
-                printf("sendto");
+                perror("sendto");
                 continue;
             }
             printf("[DEBUG] ho mandato rispostaUdp (%d) al client\n ", rispostaUdp);
@@ -256,14 +340,35 @@ int main(int argc, char **argv)
                  * CODICE DEL SERVER
                  */
 
-                /* DA MODIFICARE COSA VIENE RICEVUTO */
-                while ((nread = read(socket_conn, & /*questo*/, sizeof(/*questo*/))) > 0)
+                int input;
+
+                nread = read(socket_conn, &input, sizeof(input));
+
+                if (input == 1)
                 {
+                    printf("[DEBUG]: che porcata, funziona\n");
+                }
+                else
+                {
+                    printf("[DEBUG]: non funziona del tutto, però sono arrivato nel server\n");
                 }
 
                 // restituisco
-                write(socket_conn, &rispostaTcp, sizeof(rispostaTcp));
-                printf("[DEBUG] ho mandato rispostaTcp (%d) al client\n ", rispostaTcp);
+                ssize_t bytes_written = write(socket_conn, table, sizeof(table));
+                if (bytes_written < 0)
+                {
+                    perror("write");
+                    // Gestisci l'errore in modo appropriato
+                }
+                else if (bytes_written != sizeof(table))
+                {
+                    printf("Errore nell'invio dei dati al client\n");
+                    // Gestisci l'errore in modo appropriato
+                }
+                else
+                {
+                    printf("[DEBUG] ho mandato table al client\n ");
+                }
 
                 // chiusura di socket connessione
                 shutdown(socket_conn, SHUT_RD);

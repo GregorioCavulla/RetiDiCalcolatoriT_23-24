@@ -11,20 +11,13 @@
 #define MAX_INPUT 128   // lunghezza massima di un input
 #define LINE_LENGTH 256 // lunghezza massima di una linea
 
-typedef struct /*da modificare in base alle necessita */ // struttura per la richiesta UDP al server
-{
-    char fileName[WORD_LENGTH];
-    char parola[WORD_LENGTH];
-} ReqUDP;
-
 int main(int argc, char const *argv[])
 {
     struct hostent *host;                    // struttura per la gestione degli host, contiene informazioni come l'indirizzo IP dell'host e il suo nome
     struct sockaddr_in clientAddr, servAddr; // struttura per la gestione degli indirizzi, contiene informazioni come l'indirizzo IP e la porta, sia del client che del server
     int port, sd, len, result, nread, ris;   // variabili per la gestione della porta, del socket, della lunghezza dell'indirizzo, del risultato e del numero di caratteri letti
 
-    ReqUDP req; /*da modificare in base alle necessita */ // struttura per la richiesta UDP al server
-
+    char req[WORD_LENGTH]; /*da modificare in base alle necessita */ // struttura per la richiesta UDP al server
     /* CONTROLLO ARGOMENTI ---------------------------------- */
     if (argc != 3)
     {
@@ -96,28 +89,26 @@ int main(int argc, char const *argv[])
      * CORPO DEL CLIENT:
      */
 
-    printf("Inserire  ---------- , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
+    printf("Inserire il nome della stanza da sospendere , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
 
-    while (gets(req.fileName)) // dato da input, usato per la richiesta al server
+    while (gets(req)) // dato da input, usato per la richiesta al server
     {
         // invio richiesta una struttura di 2 dati
         len = sizeof(servAddr);
 
         // invio la richiesta al server
-        if (sendto(sd, &req, sizeof(req), 0, (struct sockaddr *)&servAddr, len) < 0) // invio la richiesta al server
+        if (sendto(sd, &req, sizeof(req), 0, (struct sockaddr *)&servAddr, len) < 0)
         {
             perror("sendto");
-            // se questo invio fallisce il client torna all'inzio del ciclo
-            printf("Dammi il nome di file, EOF per terminare: ");
+            printf("Inserire il nome della stanza da sospendere, Ctrl+D(Linux) o Ctrl+Z(Windows) per terminare: \n");
             continue;
         }
 
         // ricevo il risultato
-        if (recvfrom(sd, &ris, sizeof(ris), 0, (struct sockaddr *)&servAddr, &len) < 0) // ricevo il risultato dal server
+        if (recvfrom(sd, &ris, sizeof(ris), 0, (struct sockaddr *)&servAddr, &len) < 0)
         {
             perror("recvfrom");
-            // se questo invio fallisce il client torna all'inzio del ciclo
-            printf("Inserire  ---------- , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
+            printf("Inserire il nome della stanza da sospendere, Ctrl+D(Linux) o Ctrl+Z(Windows) per terminare: \n");
             continue;
         }
 
@@ -127,11 +118,15 @@ int main(int argc, char const *argv[])
         {
             printf("Cliente: Errore\n");
         }
+        else if (ris = 0)
+        {
+            printf("stanza inserita già sospesa");
+        }
         else
         {
-            printf("Cliente: risultato ottenuto = %d\n", ris);
+            printf("ho sospeso la stanza inserita", ris);
         }
-        printf("Inserire  ---------- , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
+        printf("Inserire il nome della stanza da sospendere , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
     }
 
     // CICLO INTERAZIONE

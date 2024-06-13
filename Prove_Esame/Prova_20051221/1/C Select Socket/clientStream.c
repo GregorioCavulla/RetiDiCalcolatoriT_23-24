@@ -11,6 +11,19 @@
 #define WORD_LENGTH 64  // lunghezza massima di una parola
 #define MAX_INPUT 128   // lunghezza massima di un input
 #define LINE_LENGTH 256 // lunghezza massima di una linea
+#define N 10
+
+typedef struct
+{
+    char nome[WORD_LENGTH];
+    char stato[3];
+    char utente1[WORD_LENGTH];
+    char utente2[WORD_LENGTH];
+    char utente3[WORD_LENGTH];
+    char utente4[WORD_LENGTH];
+    char utente5[WORD_LENGTH];
+
+} Stanza;
 
 int main(int argc, char const *argv[])
 {
@@ -18,7 +31,8 @@ int main(int argc, char const *argv[])
     struct hostent *host;
     struct sockaddr_in servAddr;
     int port, sd, nread;
-    char datoInput[MAX_INPUT], datoOutput[MAX_INPUT];
+    char datoInput[MAX_INPUT];
+    Stanza datoOutput[N];
 
     // inizializzazioni variabili
     int ris, fd, numberOfFiles;
@@ -89,23 +103,30 @@ int main(int argc, char const *argv[])
      * CICLO INTERAZIONE
      */
 
-    printf("Inserire  ---------- , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
+    printf(" Premere invio per visualizzare la lista delle prenotazioni , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
 
-    while (gets(datoInput))
+    while (gets())
     {
-
+        int input = 1;
         // invio richiesta
-        if (write(sd, datoInput, strlen(datoInput)) < 0)
+        if (write(sd, &input, sizeof(input)) < 0)
         {
             perror("write");
-            printf("Inserire  ---------- , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
+            printf(" Premere invio per visualizzare la lista delle prenotazioni , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
         }
 
         // ricezione risultato
         if (read(sd, &datoOutput, sizeof(datoOutput)) < 0)
         {
             perror("read");
-            printf("Inserire  ---------- , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
+            printf(" Premere invio per visualizzare la lista delle prenotazioni , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
+        }
+
+        printf("[DEBUG]: ricevuta struttura\n\n");
+
+        for (int i = 0; i < N; i++)
+        {
+            printf("|%s|%s|%s|%s|%s|%s|%s|\n", datoOutput[i].nome, datoOutput[i].stato, datoOutput[i].utente1, datoOutput[i].utente2, datoOutput[i].utente3, datoOutput[i].utente4, datoOutput[i].utente5);
         }
     }
 
