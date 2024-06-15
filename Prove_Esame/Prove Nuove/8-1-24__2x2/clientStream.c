@@ -18,6 +18,7 @@ int main(int argc, char const *argv[])
     struct hostent *host;
     struct sockaddr_in servAddr;
     int port, sd, nread;
+    int risposta;
     char datoInput[MAX_INPUT], datoOutput[MAX_INPUT];
 
     // inizializzazioni variabili
@@ -89,23 +90,98 @@ int main(int argc, char const *argv[])
      * CICLO INTERAZIONE
      */
 
-    printf("Inserire  ---------- , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
+    printf("Inserire nome del direttorio , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
 
     while (gets(datoInput))
     {
+
         datoInput[strcspn(datoInput, "\n")] = '\0';
         // invio richiesta
         if (write(sd, datoInput, strlen(datoInput)) < 0)
         {
             perror("write");
-            printf("Inserire  ---------- , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
+            printf("Inserire nome del direttorio , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
         }
 
         // ricezione risultato
-        if (read(sd, &datoOutput, sizeof(datoOutput)) < 0)
+        if (read(sd, &risposta, sizeof(risposta)) < 0)
         {
             perror("read");
-            printf("Inserire  ---------- , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
+            printf("Inserire nome del direttorio , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
+        }
+
+        risposta = ntohl(risposta);
+        if (risposta == 1)
+        {
+            printf("[DEBUG] il direttorio %s è presente sul server\n", datoInput);
+
+            if (read(sd, &numberOfFiles, sizeof(numberOfFiles)) < 0) // Leggo il numero di file presenti nel direttorio
+            {
+                perror("read");
+                exit(5);
+            }
+            numberOfFiles = ntohl(numberOfFiles); // Converto il numero di file in formato host
+
+            printf("[DEBUG] numberOfFiles: %d\n", numberOfFiles);
+
+            for (int i = 0; i < numberOfFiles; i++)
+            {
+                if ((read(sd, fileName, sizeof(fileName)) < 0))
+                {
+                    perror("read fileName");
+                    break;
+                }
+                printf("fileName: %s\n", fileName);
+
+                // creo il file
+                fd = open(fileName, O_WRONLY | O_CREAT | O_TRUNC, 0777);
+                if (fd < 0)
+                {
+                    perror("open");
+                    continue;
+                }
+
+                if (read(sd, &fileLength, sizeof(fileLength)) <= 0)
+                { // Leggo la lunghezza del file
+                    perror("read fileLength");
+                    close(fd);
+                    continue;
+                }
+                fileLength = ntohl(fileLength); // Converto la lunghezza del file in formato host
+
+                while (fileLength >= 0) // Leggo il file carattere per carattere
+                {
+                    nread = read(sd, &bufferChar, sizeof(char));
+                    if (nread <= 0)
+                    {
+                        perror("read");
+                        break;
+                    }
+
+                    if (bufferChar == '\1') // se il carattere è il carattere di fine file
+                    {
+                        break;
+                    }
+                    else if (bufferChar == '\0') // se il carattere è il carattere di fine riga
+                    {
+                        printf("\n");
+                    }
+                    else
+                    {
+                        write(fd, &bufferChar, sizeof(char));
+                    }
+
+                    fileLength -= nread;
+                }
+
+                printf("file %s ricevuto\n", fileName);
+                if (close(fd) < 0)
+                {
+                    perror("close");
+                }
+
+                break;
+            }
         }
     }
 
