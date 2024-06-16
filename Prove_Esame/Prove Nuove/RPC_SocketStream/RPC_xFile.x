@@ -2,23 +2,12 @@
 *   RPC_xFile
 */
 
+
 /*
 *   Struttura nome per file o direttori
 */
 struct Name{
     char name[256];
-};
-
-/*
-*   Struttura di input 
-*/
-struct Input{
-    /*
-    *   Eventuali campi per l'input, e.g.
-    */
-    Name fileName;
-    int occorrenze;
-    char carattere;
 };
 
 /*
@@ -37,7 +26,7 @@ struct Output{
 */
 program FILEPROG {
     version FILEVERS {
-        <T> OPERAZIONE_1(<parametro>) = 1;
-        <T> OPERAZIONE_2(<parametro>) = 2;
+        int ELIMINA_OCCORRENZE(Name) = 1;
+        Output LISTA_SOTTODIRETTORIO(Name) = 2;
     } = 1;
 } = 0x20000020;
