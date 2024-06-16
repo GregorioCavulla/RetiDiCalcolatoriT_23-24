@@ -175,16 +175,15 @@ int main(int argc, char **argv)
         /**
          * Gestione richieste UDP
          */
-
         if (FD_ISSET(socket_udp, &rset))
         {
             serv_len = sizeof(struct sockaddr_in);
             printf("[DEBUG] ricevuta una richiesta di UDP \n");
 
             /* DA MODIFICARE COSA VIENE RICEVUTO */
-            if (recvfrom(socket_udp, &reqUDP, sizeof(reqUDP), 0, (struct sockaddr *)&cliAddr, &serv_len))
+            if (recvfrom(socket_udp, &reqUDP, sizeof(reqUDP), 0, (struct sockaddr *)&cliAddr, &serv_len) < 0)
             {
-                printf("recvfrom");
+                perror("recvfrom");
                 continue;
             }
 
@@ -203,9 +202,9 @@ int main(int argc, char **argv)
             /**
              * CODICE DEL SERVER
              */
-
             char carattere = reqUDP.carattere;
             int occorrenze = reqUDP.occorrenze;
+            int rispostaUdp = 0; // Inizializzo la risposta
 
             strcpy(udpDirName, ".");
 
@@ -218,60 +217,62 @@ int main(int argc, char **argv)
                     {
                         continue;
                     }
+
                     udpFile_fd = open(fileUDP->d_name, O_RDONLY);
                     if (udpFile_fd < 0)
                     {
-                        perror("open: ");
+                        perror("open");
                         rispostaUdp = -1;
                         continue;
                     }
-                    else
+
+                    int occLinea = 0;
+                    bool newLine = true;
+                    while ((nread = read(udpFile_fd, &bufferChar, 1)) > 0) // leggo il file
                     {
-                        int occTrovate = 0;
-                        int occLinea = 0;
-                        bool newLine = true;
-                        while ((nread = read(udpFile_fd, &bufferChar, 1)) > 0) // leggo il file
+                        if (bufferChar == '\n')
                         {
-                            if (bufferChar == '\n')
-                            {
-                                if (occLinea >= occorrenze)
-                                {
-                                    rispostaUdp++;
-                                }
-                                occLinea = 0;
-                                newLine = true;
-                            }
-                            else
-                            {
-                                if (bufferChar == carattere)
-                                {
-                                    occLinea++;
-                                }
-                                newLine = false;
-                            }
-                            if (!newLine && occLinea >= occorrenze)
+                            if (occLinea >= occorrenze)
                             {
                                 rispostaUdp++;
                             }
-                            close(udpFile_fd);
+                            occLinea = 0;
+                            newLine = true;
+                        }
+                        else
+                        {
+                            if (bufferChar == carattere)
+                            {
+                                occLinea++;
+                            }
+                            newLine = false;
                         }
                     }
-                    closedir(dirUDP);
+
+                    // Verifica l'ultima linea se il file non termina con '\n'
+                    if (occLinea >= occorrenze)
+                    {
+                        rispostaUdp++;
+                    }
+
+                    close(udpFile_fd);
                 }
+                closedir(dirUDP);
             }
             else
             {
-                perror("opendir: ");
+                perror("opendir");
                 rispostaUdp = -1;
             }
 
             rispostaUdp = htonl(rispostaUdp);
 
-            if (sendto(socket_udp, &rispostaUdp, sizeof(rispostaUdp), 0, (struct sockaddr *)&cliAddr, serv_len))
+            if (sendto(socket_udp, &rispostaUdp, sizeof(rispostaUdp), 0, (struct sockaddr *)&cliAddr, serv_len) < 0)
             {
-                printf("sendto");
+                perror("sendto");
                 continue;
             }
+
             printf("[DEBUG] ho mandato rispostaUdp (%d) al client\n ", ntohl(rispostaUdp));
         }
 

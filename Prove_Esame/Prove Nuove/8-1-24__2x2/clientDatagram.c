@@ -95,12 +95,17 @@ int main(int argc, char const *argv[])
     /**
      * CORPO DEL CLIENT:
      */
-    printf("Inserire il carattere , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
-    while (gets(req.carattere))
+    printf("Inserire il carattere , Ctrl+D(Linux) o Ctrl+Z(Windows) per terminare: ");
+
+    while (scanf(" %c", &req.carattere) == 1) // Aggiunto spazio prima di %c per ignorare spazi bianchi
     {
-        printf("Inserire il numero di occorrenze , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
-        while (gets(req.occorrenze)) // dato da input, usato per la richiesta al server
+        getchar();
+        char occorrenze_str[WORD_LENGTH];
+        printf("Inserire il numero di occorrenze , Ctrl+D(Linux) o Ctrl+Z(Windows) per terminare: ");
+        if (gets(occorrenze_str))
         {
+            req.occorrenze = atoi(occorrenze_str); // Converto la stringa in intero
+
             // invio richiesta una struttura di 2 dati
             len = sizeof(servAddr);
 
@@ -109,7 +114,7 @@ int main(int argc, char const *argv[])
             {
                 perror("sendto");
                 // se questo invio fallisce il client torna all'inzio del ciclo
-                printf("Inserire il carattere , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
+                printf("Inserire il carattere , Ctrl+D(Linux) o Ctrl+Z(Windows) per terminare: ");
                 continue;
             }
 
@@ -118,7 +123,7 @@ int main(int argc, char const *argv[])
             {
                 perror("recvfrom");
                 // se questo invio fallisce il client torna all'inzio del ciclo
-                printf("Inserire il carattere , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
+                printf("Inserire il carattere , Ctrl+D(Linux) o Ctrl+Z(Windows) per terminare: ");
                 continue;
             }
 
@@ -132,7 +137,7 @@ int main(int argc, char const *argv[])
             {
                 printf("Cliente: risultato ottenuto = %d\n", ris);
             }
-            printf("Inserire il carattere , Ctrl+D(Linux) o Ctrl+Z(Windows)  per terminare: ");
+            printf("Inserire il carattere , Ctrl+D(Linux) o Ctrl+Z(Windows) per terminare: ");
         }
     }
     // CICLO INTERAZIONE
