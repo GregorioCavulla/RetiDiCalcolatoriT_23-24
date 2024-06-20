@@ -54,6 +54,7 @@ public class StreamThread extends Thread {
                             "[DEBUG]: dirname: " + dirName + ", car: " + carInput + ", occ: " + occInput + ".");
 
                     File dir = new File(dirName);
+                    int occ;
 
                     if (dir.isDirectory() && dir.exists() && dir.canRead()) {
                         for (File f : dir.listFiles()) {
@@ -62,7 +63,7 @@ public class StreamThread extends Thread {
                                 try (BufferedReader reader = new BufferedReader(new FileReader(f))) {
                                     String line;
                                     while ((line = reader.readLine()) != null) {
-                                        int occ = 0;
+                                        occ = 0;
                                         for (char ch : line.toCharArray()) {
                                             if (ch == carInput) {
                                                 occ++;
